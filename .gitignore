@@ -72,3 +72,6 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Ignore Google Drive linked External Assets
+Content/External_Assets/
