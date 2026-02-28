@@ -46,7 +46,33 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Enemy|Stat")
     float AttackWarningDuration = 0.5f;
 };
-#pragma endregion 적 기본 스탯 테이블 끝
+#pragma endregion 적 기본 스탯 테이블
+
+#pragma region 원거리 적 추가 스탯 테이블
+/**
+ * @struct FKNEnemyRangedStatRow
+ * @brief 원거리 적 전용 추가 수치 구조체입니다.
+ * @details 원거리 적의 발사체 속도와 교전 거리 등을 기획자가 조절합니다.
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNEnemyRangedStatRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /** @brief 발사체(총알) 이동 속도 (cm/s) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Enemy|Ranged")
+    float ProjectileSpeed = 1200.0f;
+
+    /** @brief 발사체 생존 시간 (초) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Enemy|Ranged")
+    float ProjectileLifeSpan = 5.0f;
+
+    /** @brief 최소 교전 거리 — 이 거리 안으로 들어오면 플레이어로부터 후퇴합니다 (cm) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Enemy|Ranged")
+    float MinEngagementRange = 600.0f;
+};
+#pragma endregion 원거리 적 추가 스탯 테이블
 
 #pragma region 보스 페이즈 테이블
 /**
@@ -70,4 +96,4 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Boss|Phase")
     float TransitionDuration = 2.0f;
 };
-#pragma endregion 보스 페이즈 테이블 끝
+#pragma endregion 보스 페이즈 테이블
