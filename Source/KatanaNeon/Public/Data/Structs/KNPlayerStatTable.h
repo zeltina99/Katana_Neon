@@ -6,9 +6,6 @@
 #include "Engine/DataTable.h"
 #include "KNPlayerStatTable.generated.h"
 
-#pragma region 전방 선언
-class UAnimMontage;
-#pragma endregion 전방 선언
 /**
  * @file    KNPlayerStatTable.h
  * @brief   KatanaNeon에서 기획자가 CSV/DataTable로 조절하는 모든 '수치 데이터' 구조체 모음입니다.

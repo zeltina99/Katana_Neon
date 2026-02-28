@@ -4,6 +4,7 @@
 #include "GAS/Effects/KNDurationModifier.h"
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GAS/Tags/KNStatsTags.h"
+#include "GAS/System/KNGASAttributeCache.h"
 
 #pragma region Duration Gameplay Effect 구현
 UKNDurationModifier::UKNDurationModifier()
@@ -43,44 +44,12 @@ UKNDurationModifierExecution::UKNDurationModifierExecution()
     }
 }
 
-const TMap<FGameplayTag, FGameplayAttribute>& UKNDurationModifierExecution::GetCachedAttributeMap()
-{
-    // 정적(Static) 로컬 변수를 사용하여 런타임에 단 한 번만 리플렉션 초기화를 수행합니다. (최적화 핵심)
-    static TMap<FGameplayTag, FGameplayAttribute> CachedMap;
-    static bool bIsInitialized = false;
-
-    if (!bIsInitialized)
-    {
-        for (TFieldIterator<FProperty> It(UKNAttributeSet::StaticClass()); It; ++It)
-        {
-            // 컴파일 에러 원인이었던 const 키워드 제거
-            if (FStructProperty* StructProp = CastField<FStructProperty>(*It))
-            {
-                if (StructProp->Struct->GetFName() == TEXT("GameplayAttributeData"))
-                {
-                    // 언리얼 엔진 네이밍 규칙에 따라 "모듈명.Data.Stats.어트리뷰트명" 조합을 만듭니다.
-                    FString TagName = FString::Printf(TEXT("KatanaNeon.Data.Stats.%s"), *StructProp->GetName());
-                    FGameplayTag MappedTag = FGameplayTag::RequestGameplayTag(FName(*TagName), false);
-
-                    if (MappedTag.IsValid())
-                    {
-                        CachedMap.Add(MappedTag, FGameplayAttribute(StructProp));
-                    }
-                }
-            }
-        }
-        bIsInitialized = true;
-    }
-
-    return CachedMap;
-}
-
 void UKNDurationModifierExecution::Execute_Implementation(
     const FGameplayEffectCustomExecutionParameters& ExecutionParams,
     FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
     const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-    const TMap<FGameplayTag, FGameplayAttribute>& AttributeMap = GetCachedAttributeMap();
+    const TMap<FGameplayTag, FGameplayAttribute>& AttributeMap = FKNGASAttributeCache::Get();
 
     // SetByCallerTagMagnitudes 순회하여 데이터 주도적 수치 적용
     for (const auto& [Tag, Magnitude] : Spec.SetByCallerTagMagnitudes)

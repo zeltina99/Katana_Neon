@@ -63,11 +63,5 @@ public:
     virtual void Execute_Implementation(
         const FGameplayEffectCustomExecutionParameters& ExecutionParams,
         FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
-
-private:
-    /** * @brief  태그-어트리뷰트 매핑 성능을 극대화하기 위한 내부 초기화 헬퍼 함수입니다.
-     * @return 최초 1회만 생성된 캐시 맵을 반환합니다.
-     */
-    static const TMap<FGameplayTag, FGameplayAttribute>& GetCachedAttributeMap();
 };
 #pragma endregion Execution Calculation 클래스

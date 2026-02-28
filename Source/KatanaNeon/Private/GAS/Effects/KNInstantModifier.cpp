@@ -4,6 +4,7 @@
 #include "GAS/Effects/KNInstantModifier.h"
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GAS/Tags/KNStatsTags.h"
+#include "GAS/System/KNGASAttributeCache.h"
 
 #pragma region Instant Gameplay Effect 구현
 UKNInstantModifier::UKNInstantModifier()
@@ -44,44 +45,14 @@ UKNInstantModifierExecution::UKNInstantModifierExecution()
     }
 }
 
-const TMap<FGameplayTag, FGameplayAttribute>& UKNInstantModifierExecution::GetCachedAttributeMap()
-{
-    // 정적(Static) 캐시를 통해 런타임 리플렉션 부하를 원천 차단하여 타격 프레임 드랍을 막습니다.
-    static TMap<FGameplayTag, FGameplayAttribute> CachedMap;
-    static bool bIsInitialized = false;
-
-    if (!bIsInitialized)
-    {
-        for (TFieldIterator<FProperty> It(UKNAttributeSet::StaticClass()); It; ++It)
-        {
-            // 컴파일 에러를 방지하기 위해 const 키워드를 제외한 캐스팅을 수행합니다.
-            if (FStructProperty* StructProp = CastField<FStructProperty>(*It))
-            {
-                if (StructProp->Struct->GetFName() == TEXT("GameplayAttributeData"))
-                {
-                    // "KatanaNeon.Data.Stats.Health" 형태의 태그 문자열 조합
-                    FString TagName = FString::Printf(TEXT("KatanaNeon.Data.Stats.%s"), *StructProp->GetName());
-                    FGameplayTag MappedTag = FGameplayTag::RequestGameplayTag(FName(*TagName), false);
-
-                    if (MappedTag.IsValid())
-                    {
-                        CachedMap.Add(MappedTag, FGameplayAttribute(StructProp));
-                    }
-                }
-            }
-        }
-        bIsInitialized = true;
-    }
-
-    return CachedMap;
-}
-
 void UKNInstantModifierExecution::Execute_Implementation(
     const FGameplayEffectCustomExecutionParameters& ExecutionParams,
     FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
     const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-    const TMap<FGameplayTag, FGameplayAttribute>& AttributeMap = GetCachedAttributeMap();
+    
+    // 3곳에서 복붙되던 로직을 한 줄로 깔끔하게 호출합니다.
+    const TMap<FGameplayTag, FGameplayAttribute>& AttributeMap = FKNGASAttributeCache::Get();
 
     // SetByCaller 전체를 순회하여 기획자가 넘긴 데이터만큼 즉시 증감시킵니다.
     for (const auto& [Tag, Magnitude] : Spec.SetByCallerTagMagnitudes)

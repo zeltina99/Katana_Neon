@@ -156,10 +156,7 @@ void UKNStatsComponent::ApplyBaseStats(const FKNBaseStatRow* BaseStatRow, const 
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MovementSpeed, BaseStatRow->MovementSpeed);
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MaxChronos, BaseStatRow->MaxChronos);
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Chronos, BaseStatRow->MaxChronos);
-
-        // 새로 추가된 어트리뷰트인 MaxOverclockPoint 초기화 및 시작값 0 지정
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MaxOverclockPoint, OCRow->MaxOverclockPoint);
-        Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::OverclockPoint, 0.0f);
 
         ASC->ApplyGameplayEffectSpecToSelf(*Spec);
     }
