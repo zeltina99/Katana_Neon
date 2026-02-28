@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
+// 매크로 의존성 명시: ATTRIBUTE_ACCESSORS 매크로는 아래 헤더에서 제공됩니다.
+// 위치: [프로젝트 루트]/Source/KatanaNeon/GAS/System/KNGASMacros.h
 #include "GAS/System/KNGASMacros.h"
 #include "KNAttributeSet.generated.h"
 
@@ -26,7 +28,7 @@ class KATANANEON_API UKNAttributeSet : public UAttributeSet
 #pragma region 기본 생성자 및 초기화
 public:
     UKNAttributeSet();
-#pragma endregion 기본 생성자 및 초기화 끝
+#pragma endregion 기본 생성자 및 초기화
 
 #pragma region GAS 핵심 오버라이드 함수
 public:
@@ -42,7 +44,7 @@ public:
      * @param Data 적용된 GameplayEffect에 대한 상세 데이터
      */
     virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-#pragma endregion GAS 핵심 오버라이드 함수 끝
+#pragma endregion GAS 핵심 오버라이드 함수
 
 #pragma region 생존 및 기동 어트리뷰트
 public:
@@ -51,16 +53,16 @@ public:
     FGameplayAttributeData Health;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, Health)
 
-        /** @brief 최대 체력. 데이터 테이블에서 값을 받아옵니다. */
-        UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Survival")
+    /** @brief 최대 체력. 데이터 테이블에서 값을 받아옵니다. */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Survival")
     FGameplayAttributeData MaxHealth;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, MaxHealth)
 
-        /** @brief 캐릭터의 기본 걷기/달리기 이동 속도 */
-        UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Movement")
+    /** @brief 캐릭터의 기본 걷기/달리기 이동 속도 */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Movement")
     FGameplayAttributeData MovementSpeed;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, MovementSpeed)
-#pragma endregion 생존 및 기동 어트리뷰트 끝
+#pragma endregion 생존 및 기동 어트리뷰트
 
 #pragma region 액션 자원 스태미나 어트리뷰트
 public:
@@ -69,16 +71,16 @@ public:
     FGameplayAttributeData Stamina;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, Stamina)
 
-        /** @brief 스태미나의 최대치 한도 */
-        UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Action")
+    /** @brief 스태미나의 최대치 한도 */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Action")
     FGameplayAttributeData MaxStamina;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, MaxStamina)
 
-        /** @brief 스태미나가 1초당 자연적으로 회복되는 양 */
-        UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Action")
+    /** @brief 스태미나가 1초당 자연적으로 회복되는 양 */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Action")
     FGameplayAttributeData StaminaRegenRate;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, StaminaRegenRate)
-#pragma endregion 액션 자원 스태미나 어트리뷰트 끝
+#pragma endregion 액션 자원 스태미나 어트리뷰트
 
 #pragma region 기믹 자원 크로노스 어트리뷰트
 public:
@@ -87,19 +89,25 @@ public:
     FGameplayAttributeData Chronos;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, Chronos)
 
-        /** @brief 크로노스 게이지의 최대치 한도 */
-        UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Gimmick")
+    /** @brief 크로노스 게이지의 최대치 한도 */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Gimmick")
     FGameplayAttributeData MaxChronos;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, MaxChronos)
-#pragma endregion 기믹 자원 크로노스 어트리뷰트 끝
+#pragma endregion 기믹 자원 크로노스 어트리뷰트
 
 #pragma region 보상 자원 오버클럭 어트리뷰트
 public:
-    /** * @brief 콤보나 퍼펙트 패링 성공 시 누적되는 현재 오버클럭 포인트
+    /**
+     * @brief 콤보나 퍼펙트 패링 성공 시 누적되는 현재 오버클럭 포인트
      * @details 이 값이 특정 구간에 도달하면 외부 시스템에서 판단하여 레벨 태그(Lv1, Lv2, Lv3)를 부착합니다.
      */
     UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Reward")
     FGameplayAttributeData OverclockPoint;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, OverclockPoint)
-#pragma endregion 보상 자원 오버클럭 어트리뷰트 끝
+
+    /** @brief 오버클럭 포인트의 최대치 한도 (데이터 테이블에서 초기화됨) */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Reward")
+    FGameplayAttributeData MaxOverclockPoint;
+    ATTRIBUTE_ACCESSORS(UKNAttributeSet, MaxOverclockPoint)
+#pragma endregion 보상 자원 오버클럭 어트리뷰트
 };

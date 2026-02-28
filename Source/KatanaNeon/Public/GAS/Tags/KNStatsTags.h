@@ -44,9 +44,12 @@ namespace KatanaNeon
                 // ── 보상 자원: 오버클럭 ───────────────────
                 /** @brief 누적된 오버클럭 포인트를 의미하는 태그 */
                 KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(OverclockPoint)
+
+                /** @brief 오버클럭 포인트의 최대치 한도를 의미하는 태그 */
+                KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(MaxOverclockPoint)
         }
     }
-#pragma endregion 스탯 데이터 태그 선언 끝
+#pragma endregion 스탯 데이터 태그 선언
 
 #pragma region 오버클럭 상태 태그 선언 (OverclockPoint 임계값 도달 시 부여)
     namespace State
@@ -61,5 +64,5 @@ namespace KatanaNeon
                 KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Lv3)
         }
     }
-#pragma endregion 오버클럭 상태 태그 선언 끝
+#pragma endregion 오버클럭 상태 태그 선언
 }

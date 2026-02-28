@@ -18,7 +18,7 @@ UKNDurationModifier::UKNDurationModifier()
     Executions.Add(FGameplayEffectExecutionDefinition(
         UKNDurationModifierExecution::StaticClass()));
 }
-#pragma endregion Duration Gameplay Effect 구현 끝
+#pragma endregion Duration Gameplay Effect 구현
 
 // ────────────────────────────────────────────────────────────
 
@@ -106,4 +106,4 @@ void UKNDurationModifierExecution::Execute_Implementation(
             FGameplayModifierEvaluatedData(*TargetAttrPtr, EGameplayModOp::Additive, Magnitude));
     }
 }
-#pragma endregion Execution Calculation 최적화 구현 끝
+#pragma endregion Execution Calculation 최적화 구현

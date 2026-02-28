@@ -19,7 +19,7 @@ UKNInstantModifier::UKNInstantModifier()
     Executions.Add(FGameplayEffectExecutionDefinition(
         UKNInstantModifierExecution::StaticClass()));
 }
-#pragma endregion Instant Gameplay Effect 구현 끝
+#pragma endregion Instant Gameplay Effect 구현
 
 // ────────────────────────────────────────────────────────────
 
@@ -107,4 +107,4 @@ void UKNInstantModifierExecution::Execute_Implementation(
             FGameplayModifierEvaluatedData(*TargetAttrPtr, EGameplayModOp::Additive, Magnitude));
     }
 }
-#pragma endregion Execution Calculation 최적화 구현 끝
+#pragma endregion Execution Calculation 최적화 구현

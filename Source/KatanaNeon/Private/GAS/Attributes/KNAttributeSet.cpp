@@ -11,31 +11,19 @@ UKNAttributeSet::UKNAttributeSet()
     // 속성들의 기본값은 하드코딩하지 않고 데이터 주도적 설계를 따르기 위해 비워둡니다.
     // ASC(AbilitySystemComponent)에서 DefaultAttribute DataTable을 적용할 때 값이 덮어씌워집니다.
 }
-#pragma endregion 기본 생성자 및 초기화 구현 끝
+#pragma endregion 기본 생성자 및 초기화 구현
 
 #pragma region GAS 핵심 오버라이드 함수 구현
 void UKNAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
     Super::PreAttributeChange(Attribute, NewValue);
 
-    // 하드코딩 방지: 값이 변경되기 직전에 항상 각자의 Max 값에 맞추어 Clamp(제한) 시켜줍니다.
-    if (Attribute == GetHealthAttribute())
-    {
-        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
-    }
-    else if (Attribute == GetStaminaAttribute())
-    {
-        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
-    }
-    else if (Attribute == GetChronosAttribute())
-    {
-        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxChronos());
-    }
-    // 오버클럭 포인트는 음수가 될 수 없도록 제한합니다.
-    else if (Attribute == GetOverclockPointAttribute())
-    {
-        NewValue = FMath::Max(NewValue, 0.0f);
-    }
+    // 하드코딩 방지: 값이 변경되기 직전에 항상 각자의 Max 값에 맞추어 Clamp 시켜줍니다.
+    if (Attribute == GetHealthAttribute()){ NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth()); }
+    else if (Attribute == GetStaminaAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina()); }
+    else if (Attribute == GetChronosAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxChronos()); }
+    // 완벽한 클램프(방법 B) 적용: 이제 한도를 초과할 수 없습니다.
+    else if (Attribute == GetOverclockPointAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxOverclockPoint()); }
 }
 
 void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -53,13 +41,9 @@ void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
             // @todo: 추후 ASC를 통해 'State.Dead' 등의 GameplayTag를 부여하여 데이터 드라이븐 사망 로직 구현
         }
     }
-    else if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
-    {
-        SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
-    }
-    else if (Data.EvaluatedData.Attribute == GetChronosAttribute())
-    {
-        SetChronos(FMath::Clamp(GetChronos(), 0.0f, GetMaxChronos()));
-    }
+    else if (Data.EvaluatedData.Attribute == GetStaminaAttribute()) { SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina())); }
+    else if (Data.EvaluatedData.Attribute == GetChronosAttribute()) { SetChronos(FMath::Clamp(GetChronos(), 0.0f, GetMaxChronos())); }
+    // 0이하로 떨어지지 않게 사후 보정
+    else if (Data.EvaluatedData.Attribute == GetOverclockPointAttribute()) { SetOverclockPoint(FMath::Clamp(GetOverclockPoint(), 0.0f, GetMaxOverclockPoint())); }
 }
-#pragma endregion GAS 핵심 오버라이드 함수 구현 끝
+#pragma endregion GAS 핵심 오버라이드 함수 구현

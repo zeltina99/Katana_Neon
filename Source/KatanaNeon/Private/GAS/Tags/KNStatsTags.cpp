@@ -32,9 +32,10 @@ namespace KatanaNeon
 
                 // ── 보상 자원: 오버클럭 ───────────────────
                 UE_DEFINE_GAMEPLAY_TAG(OverclockPoint, "KatanaNeon.Data.Stats.OverclockPoint")
+                UE_DEFINE_GAMEPLAY_TAG(MaxOverclockPoint, "KatanaNeon.Data.Stats.MaxOverclockPoint")
         }
     }
-#pragma endregion 스탯 데이터 태그 정의 끝
+#pragma endregion 스탯 데이터 태그 정의
 
 #pragma region 오버클럭 상태 태그 정의
     namespace State
@@ -46,5 +47,5 @@ namespace KatanaNeon
                 UE_DEFINE_GAMEPLAY_TAG(Lv3, "KatanaNeon.State.Overclock.Lv3")
         }
     }
-#pragma endregion 오버클럭 상태 태그 정의 끝
+#pragma endregion 오버클럭 상태 태그 정의
 }

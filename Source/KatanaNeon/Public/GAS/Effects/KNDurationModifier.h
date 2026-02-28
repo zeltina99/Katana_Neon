@@ -9,7 +9,7 @@
 
 #pragma region 전방 선언
 class UAbilitySystemComponent;
-#pragma endregion 전방 선언 끝
+#pragma endregion 전방 선언
 
 /**
  * @file    KNDurationModifier.h
@@ -36,7 +36,7 @@ public:
     /** @brief GE 정책 초기화 (HasDuration 지정 및 Execution 클래스 자동 등록) */
     UKNDurationModifier();
 };
-#pragma endregion Duration Gameplay Effect 클래스 끝
+#pragma endregion Duration Gameplay Effect 클래스
 
 // ────────────────────────────────────────────────────────────
 
@@ -70,4 +70,4 @@ private:
      */
     static const TMap<FGameplayTag, FGameplayAttribute>& GetCachedAttributeMap();
 };
-#pragma endregion Execution Calculation 클래스 끝
+#pragma endregion Execution Calculation 클래스

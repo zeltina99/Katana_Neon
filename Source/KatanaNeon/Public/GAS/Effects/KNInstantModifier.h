@@ -39,7 +39,7 @@ public:
     /** @brief GE 정책 초기화 (Instant 지정 및 Execution 클래스 자동 등록) */
     UKNInstantModifier();
 };
-#pragma endregion Instant Gameplay Effect 클래스 끝
+#pragma endregion Instant Gameplay Effect 클래스
 
 // ────────────────────────────────────────────────────────────
 
@@ -73,4 +73,4 @@ private:
      */
     static const TMap<FGameplayTag, FGameplayAttribute>& GetCachedAttributeMap();
 };
-#pragma endregion Execution Calculation 클래스 끝
+#pragma endregion Execution Calculation 클래스

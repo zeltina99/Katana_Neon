@@ -52,7 +52,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Chronos")
     float ChronosDrainRate = 20.0f;
 };
-#pragma endregion 기본 스탯 초기값 테이블 끝
+#pragma endregion 기본 스탯 초기값 테이블
 
 #pragma region 액션 비용 테이블 (스태미나 소모)
 /**
@@ -74,7 +74,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|ActionCost")
     float ParryStaminaCost = 15.0f;
 };
-#pragma endregion 액션 비용 테이블 끝
+#pragma endregion 액션 비용 테이블
 
 #pragma region 오버클럭 게이지 설정 테이블
 /**
@@ -126,4 +126,4 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Decay")
     float OverclockDecayRate = 5.0f;
 };
-#pragma endregion 오버클럭 게이지 설정 테이블 끝
+#pragma endregion 오버클럭 게이지 설정 테이블

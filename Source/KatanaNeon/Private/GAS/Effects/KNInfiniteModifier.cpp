@@ -15,7 +15,7 @@ UKNInfiniteModifier::UKNInfiniteModifier()
     Executions.Add(FGameplayEffectExecutionDefinition(
         UKNInfiniteModifierExecution::StaticClass()));
 }
-#pragma endregion Infinite Gameplay Effect 구현 끝
+#pragma endregion Infinite Gameplay Effect 구현
 
 // ────────────────────────────────────────────────────────────
 
@@ -101,4 +101,4 @@ void UKNInfiniteModifierExecution::Execute_Implementation(
             FGameplayModifierEvaluatedData(*TargetAttrPtr, EGameplayModOp::Additive, Magnitude));
     }
 }
-#pragma endregion Execution Calculation 최적화 구현 끝
+#pragma endregion Execution Calculation 최적화 구현
