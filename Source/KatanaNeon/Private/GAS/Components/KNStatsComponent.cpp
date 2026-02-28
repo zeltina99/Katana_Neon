@@ -6,7 +6,7 @@
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 #include "GAS/Attributes/KNAttributeSet.h"
-//#include "GAS/Tags/KNStatsTags.h"
+#include "GAS/Tags/KNStatsTags.h"
 
 #pragma region 기본 생성자 및 초기화 구현
 UKNStatsComponent::UKNStatsComponent()
