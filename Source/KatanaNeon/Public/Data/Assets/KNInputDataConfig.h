@@ -58,7 +58,14 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input|Combat")
     TObjectPtr<UInputAction> AttackAction = nullptr;
 
-    /** @brief 적 공격 튕겨내기 / 가드 (우클릭, RB/R1 버튼) */
+    /**
+     * @brief 강공격 — 콤보 도중 우클릭 시 현재 콤보 단계의 강공격으로 파생됩니다. (우클릭, Y버튼)
+     * @details 단독 입력 시 강공격 1단계, 약공 N회 후 입력 시 강공격 N+1단계가 발동됩니다.
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input|Combat")
+    TObjectPtr<UInputAction> HeavyAttackAction = nullptr;
+
+    /** @brief 적 공격 튕겨내기 / 가드 (E, RB/R1 버튼) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input|Combat")
     TObjectPtr<UInputAction> ParryAction = nullptr;
 
