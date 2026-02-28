@@ -81,6 +81,14 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(Parry, "KatanaNeon.Ability.Combat.Parry")
             UE_DEFINE_GAMEPLAY_TAG(Dash, "KatanaNeon.Ability.Combat.Dash")
         }
+        // 적 전용 어빌리티 태그
+        namespace Enemy
+        {
+            // ── 적 전용 어빌리티 실행 태그 ───────────────────
+            UE_DEFINE_GAMEPLAY_TAG(MeleeAttack, "KatanaNeon.Ability.Enemy.MeleeAttack")
+            UE_DEFINE_GAMEPLAY_TAG(RangedAttack, "KatanaNeon.Ability.Enemy.RangedAttack")
+            UE_DEFINE_GAMEPLAY_TAG(ChargeAttack, "KatanaNeon.Ability.Enemy.ChargeAttack")
+        }
         namespace Skill
         {
             // ── 특수 스킬 어빌리티 ───────────────────────────

@@ -3,8 +3,6 @@
 
 #include "Characters/AIUnit/KNEnemyBase.h"
 #include "AbilitySystemComponent.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "GameplayEffect.h"
@@ -14,22 +12,7 @@
 #pragma region 기본 생성자 및 초기화 구현
 AKNEnemyBase::AKNEnemyBase()
 {
-    // AI 퍼셉션 컴포넌트 생성 및 시각 감지 설정
-    AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(
-        TEXT("AIPerceptionComponent"));
-
-    UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(
-        TEXT("SightConfig"));
-    SightConfig->SightRadius = 1500.0f; // DataTable 로드 후 갱신됩니다
-    SightConfig->LoseSightRadius = 1800.0f;
-    SightConfig->PeripheralVisionAngleDegrees = 80.0f;
-    SightConfig->SetMaxAge(5.0f);
-    SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-    SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
-    SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
-
-    AIPerceptionComponent->ConfigureSense(*SightConfig);
-    AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
+    // 육체는 스스로 감지하거나 생각하지 않으므로, Perception 관련 코드가 모두 제거되었습니다.
 }
 
 void AKNEnemyBase::BeginPlay()
@@ -40,16 +23,9 @@ void AKNEnemyBase::BeginPlay()
     // DataTable 스탯 로드 및 GE로 어트리뷰트 초기화
     ApplyEnemyBaseStats();
 
-    // AIController를 통해 비헤이비어 트리 실행
-    if (AAIController* AIC = Cast<AAIController>(GetController()))
-    {
-        if (BehaviorTree)
-        {
-            AIC->RunBehaviorTree(BehaviorTree);
-        }
-    }
+    // BT 실행 로직은 AKNEnemyController::OnPossess 로 완전히 위임되었습니다.
 }
-#pragma endregion 기본 생성자 및 초기화 구현 끝
+#pragma endregion 기본 생성자 및 초기화 구현
 
 #pragma region 공격 예고 시스템 구현
 void AKNEnemyBase::BroadcastAttackWarning()
@@ -57,7 +33,7 @@ void AKNEnemyBase::BroadcastAttackWarning()
     // 캐시된 스탯에서 판정 윈도우 시간을 꺼내 브로드캐스트합니다.
     OnAttackWarning.Broadcast(CachedEnemyStat.AttackWarningDuration);
 }
-#pragma endregion 공격 예고 시스템 구현 끝
+#pragma endregion 공격 예고 시스템 구현
 
 #pragma region 사망 처리 구현
 void AKNEnemyBase::Die()
@@ -82,7 +58,7 @@ void AKNEnemyBase::Die()
     // 일정 시간 후 액터 제거
     SetLifeSpan(5.0f);
 }
-#pragma endregion 사망 처리 구현 끝
+#pragma endregion 사망 처리 구현
 
 #pragma region 스탯 초기화 구현
 void AKNEnemyBase::ApplyEnemyBaseStats()
@@ -116,4 +92,4 @@ void AKNEnemyBase::ApplyEnemyBaseStats()
         AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec);
     }
 }
-#pragma endregion 스탯 초기화 구현 끝
+#pragma endregion 스탯 초기화 구현

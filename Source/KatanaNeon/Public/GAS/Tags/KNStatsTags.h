@@ -116,6 +116,18 @@ namespace KatanaNeon
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dash)
         }
 
+        // 적 전용 어빌리티 태그
+        namespace Enemy
+        {
+            // ── 적 전용 어빌리티 실행 태그 ───────────────────
+            /** @brief 근접 적 공격 어빌리티 식별 태그 */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(MeleeAttack)
+            /** @brief 원거리 적 발사체 공격 어빌리티 식별 태그 */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(RangedAttack)
+            /** @brief 적 돌진 공격 어빌리티 식별 태그 */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ChargeAttack)
+        }
+
         namespace Skill
         {
             // ── 특수 스킬 어빌리티 ───────────────────────────

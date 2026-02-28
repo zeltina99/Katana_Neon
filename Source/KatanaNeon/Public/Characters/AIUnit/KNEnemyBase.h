@@ -9,8 +9,6 @@
 #include "KNEnemyBase.generated.h"
 
 #pragma region 전방 선언
-class UAIPerceptionComponent;
-class UAISenseConfig_Sight;
 class UBehaviorTree;
 class UGameplayEffect;
 #pragma endregion 전방 선언
@@ -26,8 +24,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNEnemyAttackWarning, float, Warn
 /**
  * @class  AKNEnemyBase
  * @brief  KatanaNeon 모든 적 캐릭터의 공통 기반 클래스입니다.
- * @details AI 퍼셉션, DataTable 기반 스탯 초기화, 공격 예고 시스템을 제공합니다.
- * 적은 플레이어와 달리 StatsComponent가 없으며, GAS Instant GE로 직접 초기화합니다.
+ * @details  AI 감지/판단 로직은 AKNEnemyController로 위임하고,
+ * 본 클래스는 GAS 기반의 스탯 초기화, 사망 처리, 데이터 테이블 연동에만 집중합니다.
  */
 UCLASS()
 class KATANANEON_API AKNEnemyBase : public AKNCharacterBase
@@ -40,20 +38,21 @@ public:
 
 protected:
     virtual void BeginPlay() override;
-#pragma endregion 기본 생성자 및 초기화 끝
+#pragma endregion 기본 생성자 및 초기화
 
-#pragma region AI 컴포넌트
+#pragma region AI 데이터 제공
 public:
-    /** @brief AI 지각(시각/청각) 컴포넌트 */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|AI",
-        meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent = nullptr;
+    /**
+     * @brief 이 캐릭터가 소유한 비헤이비어 트리를 반환합니다.
+     * @details AI Controller가 빙의(Possess)할 때 호출하여 트리 실행에 사용합니다.
+     */
+    UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 
 protected:
-    /** @brief 이 적이 사용할 비헤이비어 트리 에셋 (에디터 할당) */
+    /** @brief 이 적이 사용할 비헤이비어 트리 에셋입니다. (에디터 할당) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|AI")
     TObjectPtr<UBehaviorTree> BehaviorTree = nullptr;
-#pragma endregion AI 컴포넌트 끝
+#pragma endregion AI 데이터 제공
 
 #pragma region 공격 예고 시스템 (저스트 회피 연동)
 public:
@@ -67,7 +66,7 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Enemy")
     void BroadcastAttackWarning();
-#pragma endregion 공격 예고 시스템 끝
+#pragma endregion 공격 예고 시스템
 
 #pragma region 사망 처리 오버라이드
 protected:
@@ -75,7 +74,7 @@ protected:
      * @brief 적 전용 사망 처리. AI 컨트롤러 해제 및 Ragdoll 전환을 수행합니다.
      */
     virtual void Die() override;
-#pragma endregion 사망 처리 오버라이드 끝
+#pragma endregion 사망 처리 오버라이드
 
 #pragma region 데이터 테이블 및 런타임 캐시
 protected:
@@ -95,5 +94,5 @@ private:
      * @brief DataTable에서 스탯을 로드하고 Instant GE를 통해 어트리뷰트를 초기화합니다.
      */
     void ApplyEnemyBaseStats();
-#pragma endregion 데이터 테이블 및 런타임 캐시 끝
+#pragma endregion 데이터 테이블 및 런타임 캐시
 };
