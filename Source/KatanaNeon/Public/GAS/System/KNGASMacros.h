@@ -17,4 +17,4 @@
     GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
     GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
     GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
-#pragma endregion GAS 어트리뷰트 공통 매크로 끝
+#pragma endregion GAS 어트리뷰트 공통 매크로

@@ -111,16 +111,70 @@ void AKNPlayerController::Input_Dash(const FInputActionValue&)
     }
 }
 
-// (나머지 Parry, Chronos, 빈 함수들도 동일한 방식으로 ASC를 꺼내어 호출)
-void AKNPlayerController::Input_Parry(const FInputActionValue&) {}
-void AKNPlayerController::Input_Chronos(const FInputActionValue&) {}
-void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&) {}
-void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&) {}
-void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&) {}
+void AKNPlayerController::Input_Parry(const FInputActionValue&)
+{
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Combat::Parry));
+        }
+    }
+}
+
+void AKNPlayerController::Input_Chronos(const FInputActionValue&)
+{
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Skill::Chronos));
+        }
+    }
+}
+
+void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
+{
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv1));
+        }
+    }
+}
+
+void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&)
+{
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv2));
+        }
+    }
+}
+
+void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&)
+{
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv3));
+        }
+    }
+}
+
+// 기타 유틸리티 액션
 void AKNPlayerController::Input_SprintStart(const FInputActionValue&) {}
 void AKNPlayerController::Input_SprintStop(const FInputActionValue&) {}
 void AKNPlayerController::Input_LockOn(const FInputActionValue&) {}
 void AKNPlayerController::Input_Interact(const FInputActionValue&) {}
 void AKNPlayerController::Input_Potion(const FInputActionValue&) {}
-void AKNPlayerController::Input_PauseMenu(const FInputActionValue&) {}
+void AKNPlayerController::Input_PauseMenu(const FInputActionValue&)
+{
+    // 일시정지 함수 호출
+    SetGamePaused(true);
+}
 #pragma endregion 입력 콜백 함수 구현 끝

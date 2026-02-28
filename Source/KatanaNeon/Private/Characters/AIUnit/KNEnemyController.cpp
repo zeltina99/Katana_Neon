@@ -41,18 +41,21 @@ void AKNEnemyController::OnPossess(APawn* InPawn)
     // 빙의한 육체(EnemyBase)로부터 구동할 비헤이비어 트리(BT)를 받아와 실행합니다.
     if (AKNEnemyBase* EnemyPawn = Cast<AKNEnemyBase>(InPawn))
     {
+        //  빙의 시점에 DataTable 값으로 덮어씌웁니다!
+        if (SightConfig && EnemyPerceptionComponent)
+        {
+            SightConfig->SightRadius = EnemyPawn->GetCachedStat().SightRadius;
+            SightConfig->LoseSightRadius = EnemyPawn->GetCachedStat().SightRadius * 1.2f;
+
+            EnemyPerceptionComponent->ConfigureSense(*SightConfig);
+        }
+
         if (UBehaviorTree* BT = EnemyPawn->GetBehaviorTree())
         {
-            // 언리얼 5의 TObjectPtr 호환성을 위해 로컬 원시 포인터를 거쳐서 넘겨줍니다.
             UBlackboardComponent* RawBlackboard = Blackboard.Get();
-
-            // UseBlackboard가 성공적으로 초기화되면 RawBlackboard에 새 컴포넌트를 할당해 줍니다.
             if (UseBlackboard(BT->BlackboardAsset, RawBlackboard))
             {
-                // 초기화된 원시 포인터를 다시 컨트롤러의 TObjectPtr 멤버 변수에 안전하게 담아줍니다.
                 Blackboard = RawBlackboard;
-
-                // 트리를 실행합니다.
                 RunBehaviorTree(BT);
             }
         }
@@ -65,14 +68,14 @@ void AKNEnemyController::OnTargetDetected(AActor* Actor, FAIStimulus Stimulus)
 {
     if (Blackboard)
     {
-        // 🔥 하드코딩이 아닌, 에디터에서 세팅한 TargetKeyName 변수를 사용합니다.
+        // FName 대신 완벽하게 안전한 SelectedKeyName을 사용합니다.
         if (Stimulus.WasSuccessfullySensed())
         {
-            Blackboard->SetValueAsObject(TargetKeyName, Actor);
+            Blackboard->SetValueAsObject(TargetActorKey.SelectedKeyName, Actor);
         }
         else
         {
-            Blackboard->SetValueAsObject(TargetKeyName, nullptr);
+            Blackboard->SetValueAsObject(TargetActorKey.SelectedKeyName, nullptr);
         }
     }
 }

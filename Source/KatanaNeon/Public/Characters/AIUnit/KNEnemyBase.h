@@ -77,6 +77,13 @@ protected:
 #pragma endregion 사망 처리 오버라이드
 
 #pragma region 데이터 테이블 및 런타임 캐시
+public:
+    /**
+     * @brief AI Controller가 감지(Perception) 범위를 DataTable 수치로 동기화할 때 사용합니다.
+     * @return 캐싱된 적 기본 스탯 구조체
+     */
+    const FKNEnemyBaseStatRow& GetCachedStat() const { return CachedEnemyStat; }
+
 protected:
     /** @brief 이 적의 기본 스탯 DataTable 행 핸들 (에디터 할당) */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Enemy|DataTable")

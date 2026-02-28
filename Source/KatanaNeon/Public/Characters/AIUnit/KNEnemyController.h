@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "KNEnemyController.generated.h"
 
 #pragma region 전방 선언
@@ -50,10 +51,10 @@ protected:
 #pragma region 블랙보드 연동 설정
 protected:
     /**
-     * @brief 타겟(플레이어)을 저장할 블랙보드 키 이름입니다.
-     * @details 하드코딩을 방지하기 위해 에디터에서 기획자가 직접 키 이름을 맞출 수 있도록 노출합니다.
+     * @brief 타겟(플레이어)을 저장할 블랙보드 키입니다.
+     * @details 에디터에서 드롭다운으로 선택하게 하여 오타로 인한 버그를 원천 차단합니다.
      */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|AI|Blackboard")
-    FName TargetKeyName = TEXT("TargetActor");
+    FBlackboardKeySelector TargetActorKey;
 #pragma endregion 블랙보드 연동 설정
 };

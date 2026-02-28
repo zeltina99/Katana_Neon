@@ -76,20 +76,25 @@ void AKNEnemyMelee::PerformChargeAttack(const FVector& TargetLocation)
     if (bIsCharging) return;
 
     bIsCharging = true;
-    BroadcastAttackWarning(); // 돌진도 저스트 회피 판정 대상
+    BroadcastAttackWarning();
 
-    const FVector ChargeDirection =
-        (TargetLocation - GetActorLocation()).GetSafeNormal();
+    const FVector ChargeDirection = (TargetLocation - GetActorLocation()).GetSafeNormal();
 
-    // 돌진 속도 = 기본 이동속도 * 2.5배
-    LaunchCharacter(ChargeDirection * CachedEnemyStat.MoveSpeed * 2.5f,
-        /*bXYOverride=*/true, /*bZOverride=*/false);
+    // 돌진
+    LaunchCharacter(ChargeDirection * CachedEnemyStat.MoveSpeed * 2.5f, true, false);
 
-    // 일정 시간 후 돌진 상태 해제
-    FTimerHandle ChargeEndHandle;
-    GetWorldTimerManager().SetTimer(ChargeEndHandle, [this]()
-        {
-            bIsCharging = false;
-        }, 0.5f, false);
+    // 람다 대신 멤버 함수 바인딩으로 변경하여, 적이 파괴될 때 엔진이 안전하게 타이머를 해제하도록 만듭니다.
+    GetWorldTimerManager().SetTimer(
+        ChargeEndHandle,
+        this,
+        &AKNEnemyMelee::OnChargeEnd,
+        0.5f,
+        false
+    );
 }
-#pragma endregion 돌진 공격 구현 끝
+
+void AKNEnemyMelee::OnChargeEnd()
+{
+    bIsCharging = false;
+}
+#pragma endregion 돌진 공격 구현

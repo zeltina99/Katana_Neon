@@ -55,5 +55,11 @@ public:
 private:
     /** @brief 현재 돌진 중 여부 — 히트박스 중복 발동 방지용 */
     bool bIsCharging = false;
+
+    /** @brief 돌진 종료 타이머 핸들 (크래시 방지용 멤버 변수) */
+    FTimerHandle ChargeEndHandle;
+
+    /** @brief 돌진 상태를 해제하는 콜백 함수입니다. */
+    void OnChargeEnd();
 #pragma endregion 런타임 전투 상태
 };

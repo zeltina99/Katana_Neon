@@ -57,6 +57,15 @@ void AKNBossBase::CheckPhaseTransition()
     }
 }
 
+void AKNBossBase::Die()
+{
+    // 보스가 죽을 때 잊지 않고 타이머를 강제 해제합니다.
+    GetWorldTimerManager().ClearTimer(TransitionHandle);
+    bIsTransitioning = false;
+
+    Super::Die();
+}
+
 void AKNBossBase::OnPhaseTransition(int32 NewPhaseIndex)
 {
     bIsTransitioning = true;
@@ -66,8 +75,7 @@ void AKNBossBase::OnPhaseTransition(int32 NewPhaseIndex)
 
     UE_LOG(LogTemp, Log, TEXT("[KNBossBase] %s : Phase %d 전환됨."), *GetName(), CurrentPhaseIndex);
 
-    // 람다 대신 멤버 함수 바인딩으로 변경하여, 액터가 파괴되었을 때의 크래시를 원천 차단합니다.
-    FTimerHandle TransitionHandle;
+    // 로컬 변수 대신 멤버 핸들을 사용하여 추적 가능하게 만듭니다.
     GetWorldTimerManager().SetTimer(
         TransitionHandle,
         this,

@@ -77,6 +77,12 @@ protected:
     FKNBossPhaseRow CachedPhaseData;
 #pragma endregion 보스 데이터 테이블
 
+#pragma region 사망 처리 오버라이드
+protected:
+    /** @brief 보스 사망 시 진행 중인 페이즈 전환 타이머를 안전하게 정리합니다. */
+    virtual void Die() override;
+#pragma endregion 사망 처리 오버라이드 끝
+
 #pragma region 런타임 페이즈 상태
 private:
     /** @brief 현재 활성 페이즈 인덱스 */
@@ -84,5 +90,8 @@ private:
 
     /** @brief 페이즈 전환 연출 중 중복 전환 방지 플래그 */
     bool bIsTransitioning = false;
+
+    /** @brief 페이즈 전환 타이머 핸들 (사망 시 취소를 위해 멤버 변수로 승격) */
+    FTimerHandle TransitionHandle;
 #pragma endregion 런타임 페이즈 상태
 };
