@@ -1,0 +1,2 @@
+﻿Name,MaxOverclockPoint,Lv1Threshold,Lv2Threshold,Lv3Threshold,GainComboHit,GainPerfectParry,GainPerfectDodge,OverclockDecayRate
+Default,300,100,200,300,10,50,40,5

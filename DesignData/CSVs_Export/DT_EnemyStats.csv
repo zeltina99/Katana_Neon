@@ -1,0 +1,2 @@
+﻿Name,MaxHealth,MoveSpeed,SightRadius,AttackRange,AttackWarningDuration
+EnemyBaseStatInit,100,400,1500,200,0.5

@@ -8,6 +8,10 @@
 #include "Data/Structs/KNEnemyStatTable.h"
 #include "KNBossBase.generated.h"
 
+#pragma region 전방 선언
+struct FOnAttributeChangeData;
+#pragma endregion 전방 선언
+
 #pragma region 델리게이트 선언
 /**
  * @brief 보스 페이즈 전환 시 외부(UI, 카메라 연출)에 알리는 델리게이트
@@ -15,10 +19,6 @@
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNBossPhaseChanged, int32, NewPhase);
 #pragma endregion 델리게이트 선언
-
-#pragma region 전방 선언
-struct FOnAttributeChangeData;
-#pragma endregion 전방 선언
 
 /**
  * @class  AKNBossBase

@@ -1,0 +1,11 @@
+﻿---,ComboStep,AttackType,StaminaCost,ComboWindowTime,DamageMultiplier,OverclockGain,HitboxStartNormTime,HitboxEndNormTime
+LightAttack_1,1,0,8,0.8,1,8,0.25,0.55
+LightAttack_2,2,0,8,0.8,1,8,0.25,0.55
+LightAttack_3,3,0,10,0.8,1.2,10,0.25,0.6
+LightAttack_4,4,0,10,0.8,1.2,10,0.25,0.6
+LightAttack_5,5,0,12,0,1.5,15,0.2,0.65
+HeavyAttack_1,1,1,15,0,2,15,0.3,0.65
+HeavyAttack_2,2,1,15,0,2.2,15,0.3,0.65
+HeavyAttack_3,3,1,18,0,2.5,20,0.28,0.68
+HeavyAttack_4,4,1,18,0,2.8,20,0.28,0.68
+HeavyAttack_5,5,1,20,0,3.5,30,0.25,0.7

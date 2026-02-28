@@ -73,6 +73,103 @@ public:
 };
 #pragma endregion 액션 비용 테이블
 
+#pragma region 콤보 공격 테이블
+/**
+ * @struct FKNComboAttackRow
+ * @brief  플레이어 콤보 공격 1단계~5단계의 약/강 공격 수치를 정의하는 행 구조체입니다.
+ *
+ * @details
+ * [Row Key 명명 규칙]
+ * - 약공격 : LightAttack_1 ~ LightAttack_5
+ * - 강공격 : HeavyAttack_1 ~ HeavyAttack_5
+ *
+ * [콤보 트리 입력 경로]
+ * - L          → 약공1
+ * - H          → 강공1
+ * - LH         → 약공1 → 강공2
+ * - LL         → 약공1 → 약공2
+ * - LLH        → 약공1 → 약공2 → 강공3
+ * - LLL        → 약공1 → 약공2 → 약공3
+ * - LLLH       → 약공1 → 약공2 → 약공3 → 강공4
+ * - LLLL       → 약공1 → 약공2 → 약공3 → 약공4
+ * - LLLLH      → 약공1 → 약공2 → 약공3 → 약공4 → 강공5
+ * - LLLLL      → 약공1 → 약공2 → 약공3 → 약공4 → 약공5
+ *
+ * [단일 책임]
+ * 애니메이션 재생, 히트박스 판정, GAS 데미지 GE 적용 등의 실행 로직은
+ * UKNAbility_ComboAttack(추후 구현)에서 담당합니다.
+ * 본 구조체는 순수 수치 데이터 저장만 수행합니다.
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNComboAttackRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /**
+     * @brief 콤보 단계 (1 ~ 5).
+     * @details 강공 N은 약공 N-1회 입력 직후 우클릭으로 파생됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Info",
+        meta = (ClampMin = 1, ClampMax = 5))
+    int32 ComboStep = 1;
+
+    /**
+     * @brief 공격 유형. 0 = 약공격(Light), 1 = 강공격(Heavy).
+     * @details 어빌리티에서 이 값을 읽어 재생할 몽타주 섹션을 분기합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Info",
+        meta = (ClampMin = 0, ClampMax = 1))
+    int32 AttackType = 0;
+
+    /**
+     * @brief 이 공격을 시전할 때 소모하는 스태미나량.
+     * @details 스태미나가 부족하면 어빌리티가 활성화되지 않습니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Cost")
+    float StaminaCost = 10.0f;
+
+    /**
+     * @brief 다음 공격 입력을 받아들이는 허용 시간 윈도우 (초).
+     * @details 이 시간 안에 다음 입력이 없으면 콤보가 초기화됩니다.
+     * 강공격·5단계처럼 콤보를 종료하는 공격은 0.0으로 설정합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Timing")
+    float ComboWindowTime = 0.8f;
+
+    /**
+     * @brief 기본 데미지 배율. (1.0 = 기준치)
+     * @details 실제 데미지 = 캐릭터 기본 공격력 × DamageMultiplier.
+     * SetByCaller로 GE에 전달됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Combat")
+    float DamageMultiplier = 1.0f;
+
+    /**
+     * @brief 이 공격이 적중했을 때 획득하는 오버클럭 포인트.
+     * @details GainOverclockPoint()를 통해 KNStatsComponent에 전달됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Combat")
+    float OverclockGain = 10.0f;
+
+    /**
+     * @brief 히트박스가 활성화되기 시작하는 애니메이션 정규화 시간 (0.0 ~ 1.0).
+     * @details AnimNotify 또는 어빌리티의 WaitGameplayEvent로 참조합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Hitbox",
+        meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+    float HitboxStartNormTime = 0.25f;
+
+    /**
+     * @brief 히트박스가 비활성화되는 애니메이션 정규화 시간 (0.0 ~ 1.0).
+     * @details HitboxStartNormTime보다 반드시 커야 합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Hitbox",
+        meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+    float HitboxEndNormTime = 0.55f;
+};
+#pragma endregion 콤보 공격 테이블
+
 #pragma region 오버클럭 게이지 설정 테이블
 /**
  * @struct FKNOverclockSettingRow
