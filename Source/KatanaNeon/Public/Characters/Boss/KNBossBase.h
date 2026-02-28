@@ -16,6 +16,10 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNBossPhaseChanged, int32, NewPhase);
 #pragma endregion 델리게이트 선언
 
+#pragma region 전방 선언
+struct FOnAttributeChangeData;
+#pragma endregion 전방 선언
+
 /**
  * @class  AKNBossBase
  * @brief  모든 보스 캐릭터의 공통 기반. 페이즈 전환 시스템을 제공합니다.
@@ -25,8 +29,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNBossPhaseChanged, int32, NewPha
 UCLASS()
 class KATANANEON_API AKNBossBase : public AKNEnemyBase
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 #pragma region 기본 생성자 및 초기화
 public:
     AKNBossBase();
@@ -63,6 +67,13 @@ protected:
     virtual void OnPhaseTransition(int32 NewPhaseIndex);
 
 private:
+    /**
+     * @brief ASC 어트리뷰트 변경 델리게이트에 AddUObject로 연결되는 내부 콜백입니다.
+     * @details 람다 캡처([this]) 대신 UObject 생명주기를 추적하여 크래시를 원천 차단합니다.
+     * @param Data GAS 속성 변경에 대한 세부 정보를 담은 구조체
+     */
+    void OnHealthChangedForPhase(const FOnAttributeChangeData& Data);
+
     /** @brief 타이머에 의해 호출되어 페이즈 전환 잠금을 해제합니다. (크래시 방지용) */
     void UnlockPhaseTransition();
 #pragma endregion 페이즈 시스템

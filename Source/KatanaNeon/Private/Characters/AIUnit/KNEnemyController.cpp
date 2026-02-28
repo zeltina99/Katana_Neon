@@ -48,6 +48,8 @@ void AKNEnemyController::OnPossess(APawn* InPawn)
             SightConfig->LoseSightRadius = EnemyPawn->GetCachedStat().SightRadius * 1.2f;
 
             EnemyPerceptionComponent->ConfigureSense(*SightConfig);
+            // 변경된 감지 수치를 퍼셉션 시스템에 즉시 반영합니다.
+            EnemyPerceptionComponent->RequestStimuliListenerUpdate();
         }
 
         if (UBehaviorTree* BT = EnemyPawn->GetBehaviorTree())

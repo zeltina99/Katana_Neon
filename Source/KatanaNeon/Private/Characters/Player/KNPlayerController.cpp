@@ -175,6 +175,6 @@ void AKNPlayerController::Input_Potion(const FInputActionValue&) {}
 void AKNPlayerController::Input_PauseMenu(const FInputActionValue&)
 {
     // 일시정지 함수 호출
-    SetGamePaused(true);
+    SetPause(true);
 }
 #pragma endregion 입력 콜백 함수 구현 끝

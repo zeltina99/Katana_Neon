@@ -23,14 +23,12 @@ void AKNBossBase::BeginPlay()
     }
 
     // 체력 변경 시 페이즈 전환 자동 체크 등록
+    // AddLambda([this]) 대신 AddUObject를 사용하여 보스 파괴 시 엔진이 자동으로 바인딩을 해제합니다.
     if (AbilitySystemComponent && AttributeSet)
     {
         AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
             AttributeSet->GetHealthAttribute())
-            .AddLambda([this](const FOnAttributeChangeData&)
-                {
-                    CheckPhaseTransition();
-                });
+            .AddUObject(this, &AKNBossBase::OnHealthChangedForPhase);
     }
 }
 #pragma endregion 기본 생성자 및 초기화 구현
@@ -55,6 +53,13 @@ void AKNBossBase::CheckPhaseTransition()
     {
         OnPhaseTransition(NextPhase);
     }
+}
+
+void AKNBossBase::OnHealthChangedForPhase(const FOnAttributeChangeData& Data)
+{
+    // 델리게이트 시그니처를 맞추기 위한 내부 래퍼입니다.
+    // 실제 로직은 BlueprintCallable인 CheckPhaseTransition에 위임합니다.
+    CheckPhaseTransition();
 }
 
 void AKNBossBase::Die()

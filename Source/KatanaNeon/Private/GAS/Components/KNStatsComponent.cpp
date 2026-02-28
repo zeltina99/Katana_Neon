@@ -55,18 +55,19 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     }
 
     // 핵심 스탯 UI 브로드캐스트 콜백 등록
+    // AddLambda([this]) 대신 AddWeakLambda를 사용하여 컴포넌트 파괴 시 엔진이 자동으로 호출을 차단합니다.
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
-        .AddLambda([this](const FOnAttributeChangeData& Data) {
+        .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
         OnHealthChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxHealth());
             });
 
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetStaminaAttribute())
-        .AddLambda([this](const FOnAttributeChangeData& Data) {
+        .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
         OnStaminaChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxStamina());
             });
 
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetChronosAttribute())
-        .AddLambda([this](const FOnAttributeChangeData& Data) {
+        .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
         OnChronosChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxChronos());
             });
 
