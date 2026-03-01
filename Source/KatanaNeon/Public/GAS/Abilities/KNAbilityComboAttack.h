@@ -16,8 +16,8 @@ struct FKNComboAttackRow;
 #pragma endregion 전방 선언
 
 /**
- * @file    KNAbility_ComboAttack.h
- * @class   UKNAbility_ComboAttack
+ * @file    KNAbilityComboAttack.h
+ * @class   UKNAbilityComboAttack
  * @brief   플레이어 약공격(Light) / 강공격(Heavy) 5단계 콤보 어빌리티입니다.
  *
  * @details

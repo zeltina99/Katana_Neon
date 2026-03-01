@@ -37,14 +37,27 @@ namespace KatanaNeon
             // ── 전투 파라미터 ─────────────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(AttackSpeed, "KatanaNeon.Data.Stats.AttackSpeed")
         }
+
+        namespace Actor
+        {
+            // ── Actor 분류 태그 ──────────────────────────────
+            UE_DEFINE_GAMEPLAY_TAG(Projectile, "KatanaNeon.Data.Actor.Projectile")
+        }
     }
 #pragma endregion 스탯 데이터 태그 정의
 
 #pragma region 오버클럭 상태 태그 정의
     namespace State
     {
+        namespace Movement
+        {
+            // ── 이동 상태 ────────────────────────────────────
+            UE_DEFINE_GAMEPLAY_TAG(DoubleJumped, "KatanaNeon.State.Movement.DoubleJumped")
+        }
+
         namespace Overclock
         {
+            // ── 오버클럭 레벨 상태 ───────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(Lv1, "KatanaNeon.State.Overclock.Lv1")
             UE_DEFINE_GAMEPLAY_TAG(Lv2, "KatanaNeon.State.Overclock.Lv2")
             UE_DEFINE_GAMEPLAY_TAG(Lv3, "KatanaNeon.State.Overclock.Lv3")
@@ -54,6 +67,13 @@ namespace KatanaNeon
             // ── 방어 상태 ─────────────────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(Invincible, "KatanaNeon.State.Combat.Invincible")
             UE_DEFINE_GAMEPLAY_TAG(FlurryRush, "KatanaNeon.State.Combat.FlurryRush")
+
+            // ── 신규 크로노스 / 오버클럭 상태 ───────────────
+            UE_DEFINE_GAMEPLAY_TAG(ChronosActive, "KatanaNeon.State.Combat.ChronosActive")
+            UE_DEFINE_GAMEPLAY_TAG(Groggy, "KatanaNeon.State.Combat.Groggy")
+            UE_DEFINE_GAMEPLAY_TAG(StaminaImmune, "KatanaNeon.State.Combat.StaminaImmune")
+            UE_DEFINE_GAMEPLAY_TAG(OverclockTactical, "KatanaNeon.State.Combat.OverclockTactical")
+            UE_DEFINE_GAMEPLAY_TAG(WorldTimeFrozen, "KatanaNeon.State.Combat.WorldTimeFrozen")
 
             namespace Combo
             {
@@ -74,12 +94,19 @@ namespace KatanaNeon
 #pragma region 어빌리티 실행 태그 정의
     namespace Ability
     {
+        namespace Movement
+        {
+            // ── 이동 어빌리티 ────────────────────────────────
+            UE_DEFINE_GAMEPLAY_TAG(Jump, "KatanaNeon.Ability.Movement.Jump")
+        }
+
         namespace Combat
         {
             // ── 근접 전투 어빌리티 ───────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(Attack, "KatanaNeon.Ability.Combat.Attack")
             UE_DEFINE_GAMEPLAY_TAG(Parry, "KatanaNeon.Ability.Combat.Parry")
             UE_DEFINE_GAMEPLAY_TAG(Dash, "KatanaNeon.Ability.Combat.Dash")
+            UE_DEFINE_GAMEPLAY_TAG(Chronos, "KatanaNeon.Ability.Combat.Chronos")
         }
         // 적 전용 어빌리티 태그
         namespace Enemy
