@@ -32,7 +32,8 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     if (!ensure(InASC)) return;
 
     ASC = InASC;
-    AttributeSet = const_cast<UKNAttributeSet*>(ASC->GetSet<UKNAttributeSet>());
+    // ── 베테랑의 정석 반영: const_cast 삭제, 순수 const 포인터로 안전하게 캐싱 ──
+    AttributeSet = ASC->GetSet<UKNAttributeSet>();
 
     if (!AttributeSet)
     {

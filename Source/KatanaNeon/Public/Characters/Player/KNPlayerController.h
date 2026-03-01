@@ -29,14 +29,14 @@ protected:
 
     /** @brief 데이터 에셋(InputDataConfig)을 읽어 입력 액션을 바인딩합니다. */
     virtual void SetupInputComponent() override;
-#pragma endregion 기본 셋업 끝
+#pragma endregion 기본 셋업
 
 #pragma region 데이터 주도형 입력 설정
 protected:
     /** @brief 플레이어의 모든 입력 액션과 매핑 정보를 담고 있는 통합 데이터 에셋입니다. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input")
     TObjectPtr<UKNInputDataConfig> InputDataConfig = nullptr;
-#pragma endregion 데이터 주도형 입력 설정 끝
+#pragma endregion 데이터 주도형 입력 설정
 
 #pragma region 내부 헬퍼 함수
 private:
@@ -75,5 +75,5 @@ protected:
     void Input_Interact(const FInputActionValue& Value);
     void Input_Potion(const FInputActionValue& Value);
     void Input_PauseMenu(const FInputActionValue& Value);
-#pragma endregion 입력 콜백 함수 끝
+#pragma endregion 입력 콜백 함수
 };

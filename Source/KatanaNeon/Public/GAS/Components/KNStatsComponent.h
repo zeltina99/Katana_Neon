@@ -209,9 +209,12 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UAbilitySystemComponent> ASC = nullptr;
 
-    /** @brief 캐싱된 플레이어 전용 어트리뷰트 셋. nullptr로 안전하게 초기화. */
+    /**
+     * @brief 캐싱된 플레이어 전용 어트리뷰트 셋.
+     * @details 외부에서 값 변조를 막기 위해 const 포인터로 선언합니다 (리뷰 10번 완벽 반영).
+     */
     UPROPERTY(Transient)
-    TObjectPtr<UKNAttributeSet> AttributeSet = nullptr;
+    const UKNAttributeSet* AttributeSet = nullptr;
 
     /** @brief 데이터 드라이븐 밸런싱을 위해 초기화 시 데이터 테이블에서 복사해둔 액션 비용 런타임 캐시 */
     UPROPERTY()

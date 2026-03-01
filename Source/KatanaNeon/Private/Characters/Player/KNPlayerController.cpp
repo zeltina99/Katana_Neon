@@ -61,7 +61,7 @@ void AKNPlayerController::SetupInputComponent()
     // if (InputDataConfig->PotionAction) ...
     if (InputDataConfig->PauseMenuAction)    EIC->BindAction(InputDataConfig->PauseMenuAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_PauseMenu);
 }
-#pragma endregion 셋업 및 바인딩 구현 끝
+#pragma endregion 셋업 및 바인딩 구현
 
 #pragma region 입력 콜백 헬퍼 함수 구현
 void AKNPlayerController::TryActivateAbilityByTag(const FGameplayTag& Tag)
@@ -165,4 +165,4 @@ void AKNPlayerController::Input_PauseMenu(const FInputActionValue&)
     // 일시정지 함수 호출
     SetPause(true);
 }
-#pragma endregion 입력 콜백 함수 구현 끝
+#pragma endregion 입력 콜백 함수 구현

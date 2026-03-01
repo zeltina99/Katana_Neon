@@ -55,9 +55,8 @@ public:
 protected:
     /**
      * @brief 체력 변경 시 호출하여 페이즈 전환 조건을 확인합니다.
-     * @details AttributeSet의 PostGameplayEffectExecute 이후 연결하거나 ASC 델리게이트로 구독하세요.
+     * @details 내부 전용 로직이므로 블루프린트 노출(BlueprintCallable)을 제거하여 캡슐화를 강화했습니다.
      */
-    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Boss")
     void CheckPhaseTransition();
 
     /**
