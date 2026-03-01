@@ -20,12 +20,28 @@ void UKNAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 {
     Super::PreAttributeChange(Attribute, NewValue);
 
-    // 하드코딩 방지: 값이 변경되기 직전에 항상 각자의 Max 값에 맞추어 Clamp 시켜줍니다.
-    if (Attribute == GetHealthAttribute()){ NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth()); }
-    else if (Attribute == GetStaminaAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina()); }
-    else if (Attribute == GetChronosAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxChronos()); }
-    // 완벽한 클램프(방법 B) 적용: 이제 한도를 초과할 수 없습니다.
-    else if (Attribute == GetOverclockPointAttribute()) { NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxOverclockPoint()); }
+    // 값 변경 전 최대/최소치 클램핑
+    if (Attribute == GetHealthAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
+    }
+    else if (Attribute == GetStaminaAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
+    }
+    else if (Attribute == GetChronosAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxChronos());
+    }
+    else if (Attribute == GetOverclockPointAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxOverclockPoint());
+    }
+    // Modifier 적용 전 음수/0 방어 ──
+    else if (Attribute == GetAttackSpeedAttribute())
+    {
+        NewValue = FMath::Max(0.1f, NewValue);
+    }
 }
 
 void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -58,7 +74,7 @@ void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
     {
         SetMovementSpeed(FMath::Max(0.0f, GetMovementSpeed()));
 
-        // ── 베테랑 최적화: 이동 속도 변경 시 실제 캐릭터 컴포넌트에 즉각 동기화 (리뷰 4번) ──
+        // 이동 속도 변경 시 실제 캐릭터 컴포넌트에 즉각 동기화
         if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwningActor()))
         {
             if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
