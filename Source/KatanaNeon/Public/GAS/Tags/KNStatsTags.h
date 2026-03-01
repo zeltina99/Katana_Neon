@@ -172,6 +172,8 @@ namespace KatanaNeon
              * @details UKNAbility_Jump::AbilityTags에 등록됩니다.
              */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Jump)
+            /** @brief 달리기(Sprint) 어빌리티 식별 및 토글 제어 태그. */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprint)
         }
 
         namespace Combat

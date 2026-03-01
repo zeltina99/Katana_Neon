@@ -41,6 +41,13 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Movement")
     float MovementSpeed = 600.0f;
 
+    /**
+     * @brief 달리기(Sprint) 시 적용되는 최대 이동 속도 (cm/s).
+     * @details IA_Sprint 입력 유지 시 이 속도로 전환됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Movement")
+    float SprintSpeed = 1000.0f;
+
     /** @brief 초기 최대 크로노스 게이지 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Chronos")
     float MaxChronos = 100.0f;

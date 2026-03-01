@@ -43,6 +43,12 @@ void AKNPlayerController::SetupInputComponent()
         EIC->BindAction(InputDataConfig->JumpAction, ETriggerEvent::Completed, this, &AKNPlayerController::Input_JumpStop);
     }
 
+    if (InputDataConfig->SprintAction)
+    {
+        EIC->BindAction(InputDataConfig->SprintAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_SprintStart);
+        EIC->BindAction(InputDataConfig->SprintAction, ETriggerEvent::Completed, this, &AKNPlayerController::Input_SprintStop);
+    }
+
     // ── 전투 및 어빌리티 ──
     if (InputDataConfig->AttackAction)      EIC->BindAction(InputDataConfig->AttackAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Attack);
     if (InputDataConfig->HeavyAttackAction) EIC->BindAction(InputDataConfig->HeavyAttackAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_HeavyAttack);
@@ -72,6 +78,20 @@ void AKNPlayerController::TryActivateAbilityByTag(const FGameplayTag& Tag)
         if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
         {
             ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(Tag));
+        }
+    }
+}
+void AKNPlayerController::CancelAbilityByTag(const FGameplayTag& Tag)
+{
+    // 최적화: 종료할 때도 여기서 컨테이너를 단 1번만 생성하여 처리합니다.
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            FGameplayTagContainer CancelTagContainer;
+            CancelTagContainer.AddTag(Tag);
+
+            ASC->CancelAbilities(&CancelTagContainer);
         }
     }
 }
@@ -155,8 +175,17 @@ void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&)
 }
 
 // 기타 유틸리티 액션
-void AKNPlayerController::Input_SprintStart(const FInputActionValue&) {}
-void AKNPlayerController::Input_SprintStop(const FInputActionValue&) {}
+void AKNPlayerController::Input_SprintStart(const FInputActionValue&)
+{
+    /** @brief 달리기 키를 누르면 Sprint 태그를 가진 어빌리티를 활성화합니다. */
+    TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
+}
+
+void AKNPlayerController::Input_SprintStop(const FInputActionValue&)
+{
+    /** @brief 달리기 키를 떼면 Sprint 태그를 가진 어빌리티를 깔끔하게 종료합니다. */
+    CancelAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
+}
 void AKNPlayerController::Input_LockOn(const FInputActionValue&) {}
 void AKNPlayerController::Input_Interact(const FInputActionValue&) {}
 void AKNPlayerController::Input_Potion(const FInputActionValue&) {}

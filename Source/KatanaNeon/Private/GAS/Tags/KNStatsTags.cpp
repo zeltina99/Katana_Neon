@@ -99,6 +99,7 @@ namespace KatanaNeon
         {
             // ── 이동 어빌리티 ────────────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(Jump, "KatanaNeon.Ability.Movement.Jump")
+            UE_DEFINE_GAMEPLAY_TAG(Sprint, "KatanaNeon.Ability.Movement.Sprint")
         }
 
         namespace Combat

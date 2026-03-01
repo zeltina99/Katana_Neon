@@ -46,6 +46,11 @@ private:
      * @param Tag 활성화하고자 하는 어빌리티의 네이티브 태그
      */
     void TryActivateAbilityByTag(const FGameplayTag& Tag);
+    /**
+     * @brief 게임플레이 태그를 이용해 실행 중인 특정 어빌리티를 강제 종료(Cancel)합니다.
+     * @param Tag 종료할 어빌리티에 매핑된 식별 태그
+     */
+    void CancelAbilityByTag(const FGameplayTag& Tag);
 #pragma endregion 내부 헬퍼 함수
 
 #pragma region 입력 콜백 함수
