@@ -14,10 +14,11 @@
 UKNAbilityComboAttack::UKNAbilityComboAttack()
 {
     // TryActivateAbilitiesByTag(Attack)으로 호출됩니다.
-    AbilityTags.AddTag(KatanaNeon::Ability::Combat::Attack);
+    FGameplayTagContainer TempTags;
+    TempTags.AddTag(KatanaNeon::Ability::Combat::Attack);
+    SetAssetTags(TempTags);
 
-    // 사망 상태에서 콤보 시작 불가
-    // ActivationBlockedTags.AddTag(/* State.Dead 태그 */);
+    //사망
 
     // 콤보 상태(Step)는 인스턴스 멤버로 관리하므로 InstancedPerActor 필수
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;

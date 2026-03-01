@@ -13,8 +13,9 @@
 #pragma region 기본 생성자 및 초기화 구현
 UKNAbilityDash::UKNAbilityDash()
 {
-    // 언리얼 5.5 규약 반영: AbilityTags
-    AbilityTags.AddTag(KatanaNeon::Ability::Combat::Dash);
+    FGameplayTagContainer TempTags;
+    TempTags.AddTag(KatanaNeon::Ability::Combat::Dash);
+    SetAssetTags(TempTags);
 
     // 무적 중 재대시 불가 — 연속 무적 남용 방지
     ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::Invincible);
