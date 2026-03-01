@@ -26,6 +26,8 @@ AKNPlayerCharacter::AKNPlayerCharacter()
     CameraBoom->TargetArmLength = 400.0f;
     CameraBoom->bUsePawnControlRotation = true;
 
+    CameraBoom->SocketOffset = CameraSocketOffset;
+
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
@@ -42,5 +44,16 @@ void AKNPlayerCharacter::BeginPlay()
     {
         StatsComponent->InitializeStatComponent(AbilitySystemComponent);
     }
+
+    // 카메라 상하(Pitch) 회전 제한 적용
+    // bUsePawnControlRotation이 true일 때, 카메라 회전은 PlayerCameraManager가 통제합니다.
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        if (PC->PlayerCameraManager)
+        {
+            PC->PlayerCameraManager->ViewPitchMin = MinCameraPitch;
+            PC->PlayerCameraManager->ViewPitchMax = MaxCameraPitch;
+        }
+    }
 }
-#pragma endregion 기본 생성자 및 초기화 구현 끝
+#pragma endregion 기본 생성자 및 초기화 구현

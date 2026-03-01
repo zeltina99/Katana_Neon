@@ -73,6 +73,85 @@ public:
 };
 #pragma endregion 액션 비용 테이블
 
+#pragma region 점프 설정 테이블
+/**
+ * @struct FKNJumpSettingRow
+ * @brief  1단 점프 및 더블 점프의 수치를 정의하는 행 구조체입니다.
+ *
+ * @details
+ * [더블 점프 동작 원리]
+ * UCharacterMovementComponent::JumpMaxCount를 2로 설정하면 엔진이
+ * 동일한 IA_Jump 입력으로 2단 점프를 자동 처리합니다.
+ * 별도의 Input Action은 필요하지 않습니다.
+ *
+ * [적용 위치]
+ * AKNPlayerCharacter::BeginPlay에서 DataTable을 읽어
+ * GetCharacterMovement()->JumpMaxCount 와 JumpZVelocity에 세팅합니다.
+ * 더블 점프 스태미나 소모는 UKNAbility_Jump(추후 구현)에서 처리합니다.
+ *
+ * [단일 책임]
+ * 본 구조체는 순수 수치 데이터 저장만 수행합니다.
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNJumpSettingRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    // ── 기본 점프 ────────────────────────────────────────────────────────────
+
+    /**
+     * @brief 1단 점프 Z축 초속도 (cm/s).
+     * @details CharacterMovementComponent::JumpZVelocity에 적용됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic")
+    float JumpZVelocity = 600.0f;
+
+    /**
+     * @brief 1단 점프 시 소모하는 스태미나량.
+     * @details 0.0f 설정 시 스태미나 소모 없이 자유롭게 점프합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic")
+    float JumpStaminaCost = 0.0f;
+
+    // ── 더블 점프 ────────────────────────────────────────────────────────────
+
+    /**
+     * @brief 더블 점프 활성화 여부.
+     * @details false일 경우 JumpMaxCount를 1로 유지하여 더블 점프를 막습니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double")
+    bool bDoubleJumpEnabled = true;
+
+    /**
+     * @brief 더블 점프 Z축 속도 배율. (1.0 = 1단 점프와 동일한 높이)
+     * @details 실제 속도 = JumpZVelocity × DoubleJumpVelocityMultiplier.
+     * 0.8f로 설정 시 2단 점프가 1단보다 살짝 낮아 자연스러운 느낌을 줍니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
+        meta = (ClampMin = 0.1f, ClampMax = 2.0f))
+    float DoubleJumpVelocityMultiplier = 0.8f;
+
+    /**
+     * @brief 더블 점프 시 소모하는 스태미나량.
+     * @details 1단 점프 소모량과 별개로 설정하여 기획 유연성을 높입니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double")
+    float DoubleJumpStaminaCost = 15.0f;
+
+    /**
+     * @brief 공중에서 더블 점프 가능 최대 횟수.
+     * @details 기본값 1 = 더블 점프 1회.
+     * CharacterMovementComponent::JumpMaxCount에
+     * (지상 점프 1회 + 이 값)으로 계산되어 적용됩니다.
+     * 예: MaxAirJumpCount = 1 → JumpMaxCount = 2 (더블 점프)
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
+        meta = (ClampMin = 1, ClampMax = 3))
+    int32 MaxAirJumpCount = 1;
+};
+#pragma endregion 점프 설정 테이블
+
 #pragma region 콤보 공격 테이블
 /**
  * @struct FKNComboAttackRow
@@ -152,6 +231,22 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Combat")
     float OverclockGain = 10.0f;
 
+    /** @brief 이 콤보 단계에서 재생할 애니메이션 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Visual")
+    TObjectPtr<UAnimMontage> ComboMontage = nullptr;
+
+    /** @brief 몽타주 내에서 재생할 특정 섹션 이름 (예: "Light_1", "Heavy_5") */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Visual")
+    FName MontageSectionName = NAME_None;
+
+    /** @brief 적에게 적중(Hit)했을 때 터뜨릴 이펙트 (VFX) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
+    TObjectPtr<class UNiagaraSystem> HitVFX = nullptr;
+
+    /** @brief 적에게 적중(Hit)했을 때 재생할 타격음 (SFX) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
+    TObjectPtr<USoundBase> HitSound = nullptr;
+
     /**
      * @brief 히트박스가 활성화되기 시작하는 애니메이션 정규화 시간 (0.0 ~ 1.0).
      * @details AnimNotify 또는 어빌리티의 WaitGameplayEvent로 참조합니다.
@@ -202,7 +297,7 @@ public:
 
     // ── 획득량 ───────────────────────────────────────────
 
-    /** @brief 일반 콤보 어택 적중 시 획득량 */
+    /** @brief 일반 콤보 어택 이후 강공격 적중 시 획득량 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Gain")
     float GainComboHit = 10.0f;
 
