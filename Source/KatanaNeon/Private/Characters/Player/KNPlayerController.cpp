@@ -44,12 +44,38 @@ void AKNPlayerController::SetupInputComponent()
     }
 
     // ── 전투 및 어빌리티 ──
-    if (InputDataConfig->AttackAction) EIC->BindAction(InputDataConfig->AttackAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Attack);
-    if (InputDataConfig->DashAction) EIC->BindAction(InputDataConfig->DashAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Dash);
+    if (InputDataConfig->AttackAction)      EIC->BindAction(InputDataConfig->AttackAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Attack);
+    if (InputDataConfig->HeavyAttackAction) EIC->BindAction(InputDataConfig->HeavyAttackAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_HeavyAttack);
 
-    // (기타 액션들도 동일한 패턴으로 바인딩 생략...)
+    if (InputDataConfig->DashAction)        EIC->BindAction(InputDataConfig->DashAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Dash);
+    if (InputDataConfig->ParryAction)       EIC->BindAction(InputDataConfig->ParryAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Parry);
+    if (InputDataConfig->ChronosAction)     EIC->BindAction(InputDataConfig->ChronosAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Chronos);
+
+    // ── 오버클럭 ──
+    if (InputDataConfig->OverclockLv1Action) EIC->BindAction(InputDataConfig->OverclockLv1Action, ETriggerEvent::Started, this, &AKNPlayerController::Input_OverclockLv1);
+    if (InputDataConfig->OverclockLv2Action) EIC->BindAction(InputDataConfig->OverclockLv2Action, ETriggerEvent::Started, this, &AKNPlayerController::Input_OverclockLv2);
+    if (InputDataConfig->OverclockLv3Action) EIC->BindAction(InputDataConfig->OverclockLv3Action, ETriggerEvent::Started, this, &AKNPlayerController::Input_OverclockLv3);
+
+    // ── 유틸리티 (추후 구현 시 바인딩) ──
+    // if (InputDataConfig->InteractAction) ...
+    // if (InputDataConfig->PotionAction) ...
+    if (InputDataConfig->PauseMenuAction)    EIC->BindAction(InputDataConfig->PauseMenuAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_PauseMenu);
 }
 #pragma endregion 셋업 및 바인딩 구현 끝
+
+#pragma region 입력 콜백 헬퍼 함수 구현
+void AKNPlayerController::TryActivateAbilityByTag(const FGameplayTag& Tag)
+{
+    // 최적화: 7곳에서 반복되던 캐스팅과 컨테이너 생성을 여기서 단 1번만 수행합니다. (리뷰 7번)
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(Tag));
+        }
+    }
+}
+#pragma endregion 입력 콜백 헬퍼 함수 구현
 
 #pragma region 입력 콜백 함수 구현
 void AKNPlayerController::Input_Move(const FInputActionValue& Value)
@@ -60,7 +86,6 @@ void AKNPlayerController::Input_Move(const FInputActionValue& Value)
     const FVector2D MovementVector = Value.Get<FVector2D>();
     const FRotator YawRotation(0.0f, GetControlRotation().Yaw, 0.0f);
 
-    // 두뇌(Controller)가 육체(Pawn)에게 이동 명령을 내립니다.
     ControlledPawn->AddMovementInput(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X), MovementVector.Y);
     ControlledPawn->AddMovementInput(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y), MovementVector.X);
 }
@@ -74,10 +99,8 @@ void AKNPlayerController::Input_Look(const FInputActionValue& Value)
 
 void AKNPlayerController::Input_JumpStart(const FInputActionValue&)
 {
-    if (ACharacter* ControlledCharacter = Cast<ACharacter>(GetPawn()))
-    {
-        ControlledCharacter->Jump();
-    }
+    // 점프도 원래는 엔진 Jump()를 쓰지만, GAS로 짰기 때문에 태그로 호출하는 것이 맞습니다.
+    TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Jump);
 }
 
 void AKNPlayerController::Input_JumpStop(const FInputActionValue&)
@@ -88,82 +111,47 @@ void AKNPlayerController::Input_JumpStop(const FInputActionValue&)
     }
 }
 
-// ── GAS 어빌리티 호출 로직 (SRP 완벽 준수) ──
+// ── GAS 어빌리티 호출 로직 (공통 헬퍼 사용으로 획기적 최적화) ──
 void AKNPlayerController::Input_Attack(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Combat::Attack));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
+}
+
+void AKNPlayerController::Input_HeavyAttack(const FInputActionValue&)
+{
+    // TODO: 강공격은 현재 콤보 공격 파생 로직으로 처리해야 하므로,
+    // 나중에 KNAbilityComboAttack::RequestHeavyAttack()을 호출하는 로직이 필요합니다.
+    // 지금은 예비용으로 비워둡니다.
 }
 
 void AKNPlayerController::Input_Dash(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Combat::Dash));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Dash);
 }
 
 void AKNPlayerController::Input_Parry(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Combat::Parry));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Parry);
 }
 
 void AKNPlayerController::Input_Chronos(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Skill::Chronos));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Skill::Chronos);
 }
 
 void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv1));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv1);
 }
 
 void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv2));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv2);
 }
 
 void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&)
 {
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
-    {
-        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
-        {
-            ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Overclock::Lv3));
-        }
-    }
+    TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv3);
 }
 
 // 기타 유틸리티 액션

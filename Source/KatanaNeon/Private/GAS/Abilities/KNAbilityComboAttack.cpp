@@ -40,10 +40,7 @@ bool UKNAbilityComboAttack::CanActivateAbility(
     }
 
     // 콤보 윈도우 진행 중이면 다음 입력으로 허용 (스태미나 재검사는 AdvanceCombo에서 수행)
-    if (bComboWindowOpen)
-    {
-        return true;
-    }
+    if (bComboWindowOpen) return true;
 
     // 최초 1단계: 스태미나 사전 조회
     if (!ComboDataTable) return false;
@@ -159,12 +156,33 @@ void UKNAbilityComboAttack::ActivateHitbox()
         FGameplayEffectSpecHandle DmgSpec = ASC->MakeOutgoingSpec(DamageGEClass, 1.0f, Context);
         if (FGameplayEffectSpec* Spec = DmgSpec.Data.Get())
         {
-            const float FinalDamage = BaseAttackDamage * CachedComboRow.DamageMultiplier;
+            // ── 베테랑의 완벽한 DDD 적용: 오버클럭 1단계 데미지 뻥튀기 ──
+            float TacticalMultiplier = 1.0f;
+            if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::OverclockTactical))
+            {
+                if (const FKNOverclockLv1Row* Lv1Row = OverclockLv1RowHandle.GetRow<FKNOverclockLv1Row>(TEXT("GetTacticalMultiplier")))
+                {
+                    TacticalMultiplier = Lv1Row->DamageMultiplier;
+                }
+            }
+
+            // ── 베테랑의 완벽한 DDD 적용: 오버클럭 3단계(시간정지) 데미지 뻥튀기 ──
+            float FrozenMultiplier = 1.0f;
+            if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WorldTimeFrozen))
+            {
+                if (const FKNOverclockLv3Row* Lv3Row = OverclockLv3RowHandle.GetRow<FKNOverclockLv3Row>(TEXT("GetFrozenMultiplier")))
+                {
+                    FrozenMultiplier = Lv3Row->FrozenDamageMultiplier;
+                }
+            }
+
+            // 기획자의 엑셀 데이터 3개가 곱해져서 만들어진 궁극의 최종 데미지!
+            const float FinalDamage = BaseAttackDamage * CachedComboRow.DamageMultiplier * TacticalMultiplier * FrozenMultiplier;
             Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Health, -FinalDamage);
+
             TargetASC->ApplyGameplayEffectSpecToSelf(*Spec);
         }
 
-        // ── 오버클럭 포인트 획득 — KNStatsComponent에 위임 (SRP) ──
         if (UKNStatsComponent* Stats = Owner->FindComponentByClass<UKNStatsComponent>())
         {
             Stats->GainOverclockPoint(CachedComboRow.OverclockGain);
@@ -204,8 +222,17 @@ void UKNAbilityComboAttack::RequestHeavyAttack()
 #pragma region 내부 헬퍼 함수 구현
 FName UKNAbilityComboAttack::MakeComboRowName(int32 Step, int32 AttackType) const
 {
-    const FString Prefix = (AttackType == 0) ? TEXT("LightAttack") : TEXT("HeavyAttack");
-    return FName(*FString::Printf(TEXT("%s_%d"), *Prefix, Step));
+    // ── 베테랑 최적화: 매 타격마다 발생하던 FString 힙 할당(GC 유발)을 Static 배열로 완전히 제거 ──
+    static const FName LightNames[] = {
+        TEXT("LightAttack_1"), TEXT("LightAttack_2"), TEXT("LightAttack_3"), TEXT("LightAttack_4"), TEXT("LightAttack_5")
+    };
+    static const FName HeavyNames[] = {
+        TEXT("HeavyAttack_1"), TEXT("HeavyAttack_2"), TEXT("HeavyAttack_3"), TEXT("HeavyAttack_4"), TEXT("HeavyAttack_5")
+    };
+
+    // Index Out of Bounds 방어
+    const int32 SafeIdx = FMath::Clamp(Step - 1, 0, 4);
+    return (AttackType == 0) ? LightNames[SafeIdx] : HeavyNames[SafeIdx];
 }
 
 bool UKNAbilityComboAttack::LoadComboRow(const FName& RowName)
@@ -256,27 +283,26 @@ bool UKNAbilityComboAttack::ConsumeStamina()
 
 bool UKNAbilityComboAttack::PlayComboMontage()
 {
-    TArray<TObjectPtr<UAnimMontage>>& MontageArray =
-        (CurrentAttackType == 0) ? LightAttackMontages : HeavyAttackMontages;
+    TArray<TObjectPtr<UAnimMontage>>& MontageArray = (CurrentAttackType == 0) ? LightAttackMontages : HeavyAttackMontages;
 
-    const int32 MontageIdx = CurrentComboStep - 1; // 배열 인덱스: 0~4
-    if (!MontageArray.IsValidIndex(MontageIdx) || !MontageArray[MontageIdx])
+    const int32 MontageIdx = CurrentComboStep - 1;
+    if (!MontageArray.IsValidIndex(MontageIdx) || !MontageArray[MontageIdx]) return false;
+
+    // ── 베테랑 최적화: AttributeSet의 AttackSpeed 값을 가져와 몽타주 PlayRate에 연동 ──
+    float CurrentAttackSpeed = 1.0f;
+    if (const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
     {
-        UE_LOG(LogTemp, Warning,
-            TEXT("[KNAbility_ComboAttack] 몽타주 미할당 Step=%d Type=%d"),
-            CurrentComboStep, CurrentAttackType);
-        return false;
+        if (const UKNAttributeSet* Attrs = ASC->GetSet<UKNAttributeSet>())
+        {
+            // 기본값 1.0 + 오버클럭 시 증가하는 배율
+            CurrentAttackSpeed = Attrs->GetAttackSpeed();
+        }
     }
 
+    // 1.0f 대신 CurrentAttackSpeed를 투입!
     UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-        this,
-        NAME_None,
-        MontageArray[MontageIdx],
-        1.0f,
-        NAME_None,
-        false);
+        this, NAME_None, MontageArray[MontageIdx], CurrentAttackSpeed, NAME_None, false);
 
-    // 몽타주 완전 종료 시 어빌리티도 종료
     Task->OnCompleted.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);
     Task->OnInterrupted.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);
     Task->OnCancelled.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTagContainer.h"
 #include "KNPlayerController.generated.h"
 
 #pragma region 전방 선언
@@ -37,6 +38,16 @@ protected:
     TObjectPtr<UKNInputDataConfig> InputDataConfig = nullptr;
 #pragma endregion 데이터 주도형 입력 설정 끝
 
+#pragma region 내부 헬퍼 함수
+private:
+    /**
+     * @brief GAS 어빌리티 실행 코드를 단일화한 헬퍼 함수 (리뷰 반영).
+     * @details 중복 캐스팅과 컨테이너 생성 비용을 한 곳으로 모아 최적화했습니다.
+     * @param Tag 활성화하고자 하는 어빌리티의 네이티브 태그
+     */
+    void TryActivateAbilityByTag(const FGameplayTag& Tag);
+#pragma endregion 내부 헬퍼 함수
+
 #pragma region 입력 콜백 함수
 protected:
     // ── 이동 및 시점 ──
@@ -50,6 +61,7 @@ protected:
 
     // ── 전투 및 스킬 (GAS 어빌리티 연동) ──
     void Input_Attack(const FInputActionValue& Value);
+    void Input_HeavyAttack(const FInputActionValue& Value);
     void Input_Parry(const FInputActionValue& Value);
     void Input_Dash(const FInputActionValue& Value);
     void Input_Chronos(const FInputActionValue& Value);

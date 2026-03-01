@@ -70,7 +70,8 @@ void UKNAbilityParry::ActivateAbility(
 
     if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
     {
-        ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("KatanaNeon.State.Combat.Parrying")));
+        // O(1) 네이티브 태그 사용
+        ASC->AddLooseGameplayTag(KatanaNeon::State::Combat::Parrying);
     }
 
     AKNCharacterBase* Owner = Cast<AKNCharacterBase>(GetAvatarActorFromActorInfo());
@@ -102,10 +103,10 @@ void UKNAbilityParry::EndAbility(
 
     if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
     {
-        const FGameplayTag ParryingTag = FGameplayTag::RequestGameplayTag(TEXT("KatanaNeon.State.Combat.Parrying"));
-        if (ASC->HasMatchingGameplayTag(ParryingTag))
+        // O(1) 네이티브 태그 사용
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Parrying))
         {
-            ASC->RemoveLooseGameplayTag(ParryingTag);
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Parrying);
         }
     }
 
@@ -141,10 +142,10 @@ void UKNAbilityParry::EndAbility(
 #pragma region 외부 호출 인터페이스 구현
 void UKNAbilityParry::OnEnemyAttackWarningReceived()
 {
-    const FGameplayTag ParryingTag = FGameplayTag::RequestGameplayTag(TEXT("KatanaNeon.State.Combat.Parrying"));
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-    if (!ASC || !ASC->HasMatchingGameplayTag(ParryingTag)) return;
+    // O(1) 네이티브 태그 사용
+    if (!ASC || !ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Parrying)) return;
 
     GetWorld()->GetTimerManager().ClearTimer(ParryWindowTimerHandle);
     OnPerfectParry();
@@ -198,12 +199,12 @@ void UKNAbilityParry::OnPerfectParry()
 
     if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
     {
-        const FGameplayTag ParryingTag = FGameplayTag::RequestGameplayTag(TEXT("KatanaNeon.State.Combat.Parrying"));
-        if (ASC->HasMatchingGameplayTag(ParryingTag))
+        // O(1) 네이티브 태그 사용
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Parrying))
         {
-            ASC->RemoveLooseGameplayTag(ParryingTag);
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Parrying);
         }
-        // 네이티브 태그 사용 (KNStatsTags.h)
+
         ASC->AddLooseGameplayTag(KatanaNeon::State::Combat::FlurryRush);
     }
 

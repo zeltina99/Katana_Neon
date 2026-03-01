@@ -3,6 +3,8 @@
 
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #pragma region 기본 생성자 및 초기화 구현
 UKNAttributeSet::UKNAttributeSet()
@@ -30,20 +32,40 @@ void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 {
     Super::PostGameplayEffectExecute(Data);
 
-    // GameplayEffect 적용 후, 후처리가 필요한 이벤트(예: 체력 0 이하로 사망)를 여기서 처리합니다.
+    // GE 적용 후 최종 값 보정 및 외부 시스템 동기화
     if (Data.EvaluatedData.Attribute == GetHealthAttribute())
     {
-        // 강제로 체력을 클램프하여 안전장치 마련
         SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+    }
+    else if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+    {
+        SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
+    }
+    else if (Data.EvaluatedData.Attribute == GetChronosAttribute())
+    {
+        SetChronos(FMath::Clamp(GetChronos(), 0.0f, GetMaxChronos()));
+    }
+    else if (Data.EvaluatedData.Attribute == GetOverclockPointAttribute())
+    {
+        SetOverclockPoint(FMath::Clamp(GetOverclockPoint(), 0.0f, GetMaxOverclockPoint()));
+    }
+    else if (Data.EvaluatedData.Attribute == GetAttackSpeedAttribute())
+    {
+        // 공속은 최소 0.1 이상 유지 (0이 되면 애니메이션 멈춤 방지)
+        SetAttackSpeed(FMath::Max(0.1f, GetAttackSpeed()));
+    }
+    else if (Data.EvaluatedData.Attribute == GetMovementSpeedAttribute())
+    {
+        SetMovementSpeed(FMath::Max(0.0f, GetMovementSpeed()));
 
-        if (GetHealth() <= 0.0f)
+        // ── 베테랑 최적화: 이동 속도 변경 시 실제 캐릭터 컴포넌트에 즉각 동기화 (리뷰 4번) ──
+        if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwningActor()))
         {
-            // @todo: 추후 ASC를 통해 'State.Dead' 등의 GameplayTag를 부여하여 데이터 드라이븐 사망 로직 구현
+            if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
+            {
+                MovementComp->MaxWalkSpeed = GetMovementSpeed();
+            }
         }
     }
-    else if (Data.EvaluatedData.Attribute == GetStaminaAttribute()) { SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina())); }
-    else if (Data.EvaluatedData.Attribute == GetChronosAttribute()) { SetChronos(FMath::Clamp(GetChronos(), 0.0f, GetMaxChronos())); }
-    // 0이하로 떨어지지 않게 사후 보정
-    else if (Data.EvaluatedData.Attribute == GetOverclockPointAttribute()) { SetOverclockPoint(FMath::Clamp(GetOverclockPoint(), 0.0f, GetMaxOverclockPoint())); }
 }
 #pragma endregion GAS 핵심 오버라이드 함수 구현

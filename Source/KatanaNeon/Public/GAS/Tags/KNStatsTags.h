@@ -93,6 +93,8 @@ namespace KatanaNeon
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible)
             /** @brief 저스트 회피 성공 시 진입하는 플러리 러시 상태. 월드 시간이 느려지고 공격속도가 가속됩니다. */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FlurryRush)
+            /** @brief 패링 판정 창이 열려있는 상태 (퍼펙트 패링 판정용) */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Parrying)
 
             // ── 신규 크로노스 / 오버클럭 상태 ───────────────
             /**

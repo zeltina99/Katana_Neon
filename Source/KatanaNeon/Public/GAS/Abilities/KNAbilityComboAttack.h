@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "Engine/DataTable.h"
 #include "Data/Structs/KNPlayerStatTable.h"
 #include "KNAbilityComboAttack.generated.h"
 
@@ -12,7 +11,6 @@
 class UAnimMontage;
 class UKNStatsComponent;
 class UAbilityTask_PlayMontageAndWait;
-struct FKNComboAttackRow;
 #pragma endregion 전방 선언
 
 /**
@@ -174,6 +172,14 @@ protected:
      */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|GAS")
     TSubclassOf<UGameplayEffect> StaminaCostGEClass = nullptr;
+
+    /** @brief 오버클럭 1단계(전술 강화) 수치를 엑셀에서 읽어오기 위한 데이터 행 핸들 */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Combo|Overclock")
+    FDataTableRowHandle OverclockLv1RowHandle;
+
+    /** @brief 오버클럭 3단계(시간 정지) 수치를 엑셀에서 읽어오기 위한 데이터 행 핸들 */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Combo|Overclock")
+    FDataTableRowHandle OverclockLv3RowHandle;
 #pragma endregion 에디터 설정 데이터
 
 #pragma region 런타임 콤보 상태

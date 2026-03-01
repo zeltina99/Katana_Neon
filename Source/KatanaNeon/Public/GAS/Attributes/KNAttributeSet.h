@@ -110,4 +110,12 @@ public:
     FGameplayAttributeData MaxOverclockPoint;
     ATTRIBUTE_ACCESSORS(UKNAttributeSet, MaxOverclockPoint)
 #pragma endregion 보상 자원 오버클럭 어트리뷰트
+
+#pragma region 전투 파라미터 어트리뷰트
+public:
+    /** @brief 공격 애니메이션 재생 배율. (기본 1.0, 오버클럭 시 증가) */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Attributes|Combat")
+    FGameplayAttributeData AttackSpeed;
+    ATTRIBUTE_ACCESSORS(UKNAttributeSet, AttackSpeed)
+#pragma endregion 전투 파라미터 어트리뷰트
 };

@@ -67,6 +67,7 @@ namespace KatanaNeon
             // ── 방어 상태 ─────────────────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(Invincible, "KatanaNeon.State.Combat.Invincible")
             UE_DEFINE_GAMEPLAY_TAG(FlurryRush, "KatanaNeon.State.Combat.FlurryRush")
+            UE_DEFINE_GAMEPLAY_TAG(Parrying, "KatanaNeon.State.Combat.Parrying")
 
             // ── 신규 크로노스 / 오버클럭 상태 ───────────────
             UE_DEFINE_GAMEPLAY_TAG(ChronosActive, "KatanaNeon.State.Combat.ChronosActive")
