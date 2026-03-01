@@ -101,10 +101,20 @@ public:
     // ── 기본 점프 ────────────────────────────────────────────────────────────
 
     /**
+     * @brief 최대 점프 횟수.
+     * @details CharacterMovementComponent::JumpMaxCount에 직접 적용됩니다.
+     *          1 = 단일 점프, 2 = 더블 점프 허용.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic",
+        meta = (ClampMin = 1, ClampMax = 3))
+    int32 MaxJumpCount = 2;
+
+    /**
      * @brief 1단 점프 Z축 초속도 (cm/s).
      * @details CharacterMovementComponent::JumpZVelocity에 적용됩니다.
      */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic",
+        meta = (ClampMin = 100.0f, ClampMax = 3000.0f))
     float JumpZVelocity = 600.0f;
 
     /**
@@ -114,23 +124,23 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic")
     float JumpStaminaCost = 0.0f;
 
+    /**
+     * @brief 더블 점프 활성화 여부.
+     * @details false이면 MaxJumpCount를 1로 강제하여 더블 점프를 막습니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Basic")
+    bool bDoubleJumpEnabled = true;
+
     // ── 더블 점프 ────────────────────────────────────────────────────────────
 
     /**
-     * @brief 더블 점프 활성화 여부.
-     * @details false일 경우 JumpMaxCount를 1로 유지하여 더블 점프를 막습니다.
-     */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double")
-    bool bDoubleJumpEnabled = true;
-
-    /**
-     * @brief 더블 점프 Z축 속도 배율. (1.0 = 1단 점프와 동일한 높이)
-     * @details 실제 속도 = JumpZVelocity × DoubleJumpVelocityMultiplier.
-     * 0.8f로 설정 시 2단 점프가 1단보다 살짝 낮아 자연스러운 느낌을 줍니다.
+     * @brief 2단계(더블) 점프 시 LaunchCharacter에 전달할 Z 충격량 (cm/s).
+     * @details 절댓값 방식 사용. 1단 점프보다 살짝 낮게 설정하여 자연스러운 체감을 줍니다.
+     *          UKNAbility_Jump::PerformDoubleJump()에서 LaunchCharacter()에 전달됩니다.
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
-        meta = (ClampMin = 0.1f, ClampMax = 2.0f))
-    float DoubleJumpVelocityMultiplier = 0.8f;
+        meta = (ClampMin = 100.0f, ClampMax = 3000.0f))
+    float DoubleJumpZVelocity = 500.0f;
 
     /**
      * @brief 더블 점프 시 소모하는 스태미나량.
@@ -140,15 +150,31 @@ public:
     float DoubleJumpStaminaCost = 15.0f;
 
     /**
-     * @brief 공중에서 더블 점프 가능 최대 횟수.
-     * @details 기본값 1 = 더블 점프 1회.
-     * CharacterMovementComponent::JumpMaxCount에
-     * (지상 점프 1회 + 이 값)으로 계산되어 적용됩니다.
-     * 예: MaxAirJumpCount = 1 → JumpMaxCount = 2 (더블 점프)
+     * @brief 더블 점프 중 가로 방향 공중 제어 배율 (0.0 = 무제어, 1.0 = 지상과 동일).
+     * @details UCharacterMovementComponent::AirControl을 임시로 이 값으로 덮어씁니다.
+     *          착지 시 KNPlayerCharacter::Landed()에서 원래 값으로 복구됩니다.
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
-        meta = (ClampMin = 1, ClampMax = 3))
-    int32 MaxAirJumpCount = 1;
+        meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+    float DoubleJumpAirControl = 0.4f;
+
+    /**
+     * @brief 더블 점프 몽타주 재생 배율 (1.0 = 기본 속도).
+     * @details UKNAbility_Jump::PerformDoubleJump()에서 PlayAnimMontage() 호출 시 전달됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
+        meta = (ClampMin = 0.1f, ClampMax = 5.0f))
+    float DoubleJumpMontagePlayRate = 1.2f;
+
+    /**
+     * @brief 더블 점프 사용 후 착지 전 추가 중력 배율.
+     * @details UCharacterMovementComponent::GravityScale에 임시 적용됩니다.
+     *          1.0 = 기본 중력, 값이 클수록 더 빠르게 낙하합니다.
+     *          착지 시 Landed()에서 1.0으로 복구됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Jump|Double",
+        meta = (ClampMin = 1.0f, ClampMax = 5.0f))
+    float FallGravityScale = 1.5f;
 };
 #pragma endregion 점프 설정 테이블
 
@@ -316,3 +342,258 @@ public:
     float OverclockDecayRate = 5.0f;
 };
 #pragma endregion 오버클럭 게이지 설정 테이블
+
+#pragma region 크로노스 구체 감속 설정 테이블
+/**
+ * @struct FKNChronosSettingRow
+ * @brief  크로노스(시간 감속 구체) 어빌리티의 수치를 정의하는 DataTable 행입니다.
+ *
+ * @details
+ * [작동 방식]
+ * - 플레이어에 부착된 KNChronosSphereComponent의 콜리전 반경 내부에 진입한
+ *   적 캐릭터와 적 발사체에만 CustomTimeDilation이 적용됩니다.
+ * - 플레이어 자신은 항상 CustomTimeDilation = 1.0을 유지합니다.
+ * - GlobalTimeDilation은 변경하지 않습니다 (기존 크로노스 기획 변경).
+ *
+ * [연결 에셋]
+ * DataTable 에셋: DT_ChronosSetting, Row Key: "Default"
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNChronosSettingRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /**
+     * @brief 플레이어에 부착되는 크로노스 구체 콜리전 반경 (cm).
+     * @details 이 반경 내에 진입한 적/발사체에 시간 감속이 즉시 적용됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Chronos",
+        meta = (ClampMin = 100.0f, ClampMax = 3000.0f))
+    float SphereRadius = 600.0f;
+
+    /**
+     * @brief 구체 내 적 캐릭터에 적용되는 CustomTimeDilation 배율.
+     * @details 0.3 = 30% 속도. 0에 가까울수록 거의 정지 상태처럼 보입니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Chronos",
+        meta = (ClampMin = 0.05f, ClampMax = 0.95f))
+    float EnemySlowScale = 0.3f;
+
+    /**
+     * @brief 구체 내 적 발사체에 적용되는 CustomTimeDilation 배율.
+     * @details 적 본체보다 더 느리게 설정하여 플레이어에게 충분한 반응 시간을 줍니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Chronos",
+        meta = (ClampMin = 0.01f, ClampMax = 0.95f))
+    float ProjectileSlowScale = 0.1f;
+
+    /**
+     * @brief 크로노스 게이지 초당 소모량.
+     * @details 매 DrainTickInterval마다 (DrainRatePerSecond × DrainTickInterval)만큼 소모됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Chronos",
+        meta = (ClampMin = 1.0f))
+    float DrainRatePerSecond = 20.0f;
+
+    /**
+     * @brief 크로노스 소모 GE 적용 주기 (초).
+     * @details 0.1초 권장. 너무 짧으면 GE 호출 빈도가 높아져 퍼포먼스에 영향을 줍니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Chronos",
+        meta = (ClampMin = 0.05f, ClampMax = 1.0f))
+    float DrainTickInterval = 0.1f;
+};
+#pragma endregion 크로노스 구체 감속 설정 테이블
+
+#pragma region 오버클럭 1단계 어빌리티 설정 테이블
+/**
+ * @struct FKNOverclockLv1Row
+ * @brief  오버클럭 1단계(전술 강화) 어빌리티의 수치를 정의하는 DataTable 행입니다.
+ *
+ * @details
+ * [효과 요약]
+ * - Duration(10s) 동안 아래 버프를 Duration GE로 적용합니다.
+ *   • AttackSpeed   : +AttackSpeedAdditive (AdditiveDelta 방식)
+ *   • MovementSpeed : +MovementSpeedAdditive (cm/s 절대 추가량)
+ *   • DamageMultiplier : State.Combat.OverclockTactical 태그로 ComboAttack 어빌리티가 조회
+ *   • StaminaImmune : State.Combat.StaminaImmune Loose 태그 부여
+ *
+ * [연결 에셋]
+ * DataTable 에셋: DT_OverclockLv1Setting, Row Key: "Default"
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNOverclockLv1Row : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /** @brief 전술 강화 지속 시간 (초) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1",
+        meta = (ClampMin = 1.0f, ClampMax = 60.0f))
+    float Duration = 10.0f;
+
+    /**
+     * @brief 공격 속도 Additive 증가량.
+     * @details AttackSpeed Attribute에 덧셈 Delta로 적용됩니다.
+     *          예: 기준 1.0 + 0.4 = 최종 1.4배 → 몽타주 PlayRate도 연동됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1",
+        meta = (ClampMin = 0.0f, ClampMax = 5.0f))
+    float AttackSpeedAdditive = 0.4f;
+
+    /**
+     * @brief 이동 속도 추가량 (cm/s).
+     * @details CharacterMovementComponent::MaxWalkSpeed에 Additive로 적용됩니다.
+     *          예: 기준 600 + 150 = 750 cm/s.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1",
+        meta = (ClampMin = 0.0f, ClampMax = 1000.0f))
+    float MovementSpeedAdditive = 150.0f;
+
+    /**
+     * @brief 공격력 배율.
+     * @details State.Combat.OverclockTactical 태그 존재 시 ComboAttack 어빌리티가 이 값을 조회합니다.
+     *          BaseDamage × DamageMultiplier 형태로 곱해집니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1",
+        meta = (ClampMin = 1.0f, ClampMax = 10.0f))
+    float DamageMultiplier = 1.5f;
+
+    /**
+     * @brief 스태미나 소모 면역 여부.
+     * @details true이면 State.Combat.StaminaImmune 태그를 부여하여
+     *          모든 스태미나 소모 GE의 SetByCaller 값을 0으로 처리합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1")
+    bool bStaminaImmune = true;
+
+    /**
+     * @brief 오버클럭 포인트 소모량.
+     * @details KNStatsComponent::ConsumeOverclockLevel(1) 호출 시 차감됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv1",
+        meta = (ClampMin = 1.0f))
+    float OverclockCost = 100.0f;
+};
+#pragma endregion 오버클럭 1단계 어빌리티 설정 테이블
+
+#pragma region 오버클럭 2단계 어빌리티 설정 테이블
+/**
+ * @struct FKNOverclockLv2Row
+ * @brief  오버클럭 2단계(참격파) 어빌리티의 수치를 정의하는 DataTable 행입니다.
+ *
+ * @details
+ * [효과 요약]
+ * - 전방으로 AKNSlashProjectile 발사체를 스폰합니다.
+ * - 피격 대상 ASC에 SlashDamage 즉시 적용 + State.Combat.Groggy Duration GE를 부여합니다.
+ * - 그로기 상태 동안 AI/보스가 행동 불능 상태가 됩니다.
+ *
+ * [연결 에셋]
+ * DataTable 에셋: DT_OverclockLv2Setting, Row Key: "Default"
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNOverclockLv2Row : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /** @brief 참격파 발사체 이동 속도 (cm/s) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2",
+        meta = (ClampMin = 100.0f, ClampMax = 10000.0f))
+    float SlashSpeed = 2500.0f;
+
+    /** @brief 참격파 발사체가 소멸하는 최대 이동 거리 (cm) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2",
+        meta = (ClampMin = 100.0f, ClampMax = 5000.0f))
+    float SlashMaxDistance = 1500.0f;
+
+    /**
+     * @brief 참격파 발사체의 Box Collision 절반 크기 (cm).
+     * @details X = 전방 깊이, Y = 폭(너비), Z = 높이.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2")
+    FVector SlashBoxHalfExtent = FVector(50.0f, 80.0f, 40.0f);
+
+    /** @brief 참격파 피격 시 즉시 적용하는 데미지 (Instant GE) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2",
+        meta = (ClampMin = 0.0f))
+    float SlashDamage = 40.0f;
+
+    /**
+     * @brief 그로기(행동 불능) 상태 지속 시간 (초).
+     * @details State.Combat.Groggy Duration GE의 지속 시간으로 사용됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2",
+        meta = (ClampMin = 0.5f, ClampMax = 30.0f))
+    float GrogyDuration = 3.0f;
+
+    /**
+     * @brief 오버클럭 포인트 소모량.
+     * @details KNStatsComponent::ConsumeOverclockLevel(2) 호출 시 차감됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv2",
+        meta = (ClampMin = 1.0f))
+    float OverclockCost = 200.0f;
+};
+#pragma endregion 오버클럭 2단계 어빌리티 설정 테이블
+
+#pragma region 오버클럭 3단계 어빌리티 설정 테이블
+/**
+ * @struct FKNOverclockLv3Row
+ * @brief  오버클럭 3단계(시간 파열) 궁극기 어빌리티의 수치를 정의하는 DataTable 행입니다.
+ *
+ * @details
+ * [효과 요약]
+ * - GlobalTimeDilation = WorldTimeDilationScale(≈0.0001) → 월드 거의 정지
+ * - 플레이어 CustomTimeDilation = 1.0 / WorldTimeDilationScale → 플레이어는 정상 속도
+ * - TimeStopDuration(실초 기준) 경과 후 자동 해제
+ * - 정지 중 ComboAttack의 데미지에 FrozenDamageMultiplier 추가 적용 가능
+ *
+ * [FTimerManager 참고사항]
+ * FTimerManager는 GlobalTimeDilation의 영향을 받지 않으므로 실제 시간 기준으로 동작합니다.
+ *
+ * [연결 에셋]
+ * DataTable 에셋: DT_OverclockLv3Setting, Row Key: "Default"
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNOverclockLv3Row : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /**
+     * @brief 시간 정지 지속 시간 (실월드 초 기준).
+     * @details FTimerManager 기준이므로 GlobalTimeDilation과 무관하게 실시간으로 카운트됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv3",
+        meta = (ClampMin = 1.0f, ClampMax = 30.0f))
+    float TimeStopDuration = 5.0f;
+
+    /**
+     * @brief 시간 정지 중 GlobalTimeDilation 값.
+     * @details 완전한 0은 엔진 물리 연산 오류를 유발하므로 0.0001을 권장합니다.
+     *          플레이어 CustomTimeDilation = 1.0 / WorldTimeDilationScale으로 자동 보정됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv3",
+        meta = (ClampMin = 0.0001f, ClampMax = 0.05f))
+    float WorldTimeDilationScale = 0.0001f;
+
+    /**
+     * @brief 시간 정지 중 데미지 배율.
+     * @details 1.0 = 원래 데미지 그대로, 1.5 = 보너스 50% 추가.
+     *          ComboAttack 어빌리티가 State.Combat.WorldTimeFrozen 태그 존재 시 이 값을 조회합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv3",
+        meta = (ClampMin = 0.1f, ClampMax = 10.0f))
+    float FrozenDamageMultiplier = 1.0f;
+
+    /**
+     * @brief 오버클럭 포인트 소모량.
+     * @details KNStatsComponent::ConsumeOverclockLevel(3) 호출 시 차감됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock|Lv3",
+        meta = (ClampMin = 1.0f))
+    float OverclockCost = 300.0f;
+};
+#pragma endregion 오버클럭 3단계 어빌리티 설정 테이블

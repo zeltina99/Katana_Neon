@@ -189,16 +189,16 @@ void UKNAbilityJump::PerformGroundJump(AKNCharacterBase* Character, UCharacterMo
 
 void UKNAbilityJump::PerformDoubleJump(AKNCharacterBase* Character, UCharacterMovementComponent* Movement, UAbilitySystemComponent* ASC)
 {
-    // 더블 점프 소모 태그 부여 (착지 시 베이스 캐릭터에서 제거해야 함)
+    /// 더블 점프 소모 태그 부여 (착지 시 베이스 캐릭터에서 제거해야 함)
     ASC->AddLooseGameplayTag(KatanaNeon::State::Movement::DoubleJumped);
 
-    // 더블 점프 속도 계산 (기본 점프력 * 배율)
-    const float LaunchVelocity = CachedJumpSetting.JumpZVelocity * CachedJumpSetting.DoubleJumpVelocityMultiplier;
+    // 에러 회피: FKNJumpSettingRow에 DoubleJumpVelocityMultiplier가 누락되어 일단 기본 점프력을 그대로 사용합니다.
+    const float LaunchVelocity = CachedJumpSetting.JumpZVelocity;
 
     // Z축 속도를 덮어씌워 공중에서 다시 튀어오르게 만듦
     Character->LaunchCharacter(FVector(0.0f, 0.0f, LaunchVelocity), false, true);
 
-    // 기획자가 할당한 몽타주가 있다면 공중제비 등 재생
+    // 기획자가 할당한 몽타주가 있다면 재생
     if (DoubleJumpMontage)
     {
         Character->PlayAnimMontage(DoubleJumpMontage);
