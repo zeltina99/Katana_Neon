@@ -1,0 +1,2 @@
+﻿RowName,Duration,AttackSpeedAdditive,MovementSpeedAdditive,DamageMultiplier,bStaminaImmune,OverclockCost
+Default,10,0.4,150,1.5,TRUE,100

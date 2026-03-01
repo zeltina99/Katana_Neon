@@ -322,11 +322,6 @@ public:
     float Lv3Threshold = 300.0f;
 
     // ── 획득량 ───────────────────────────────────────────
-
-    /** @brief 일반 콤보 어택 이후 강공격 적중 시 획득량 */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Gain")
-    float GainComboHit = 10.0f;
-
     /** @brief 퍼펙트 패링 성공 시 획득량 (하이 리스크 하이 리턴) */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Gain")
     float GainPerfectParry = 50.0f;
