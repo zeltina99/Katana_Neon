@@ -4,8 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Data/Enums/KNCombatEnums.h"
 #include "KNPlayerStatTable.generated.h"
 
+#pragma region 전방 선언
+class UAnimMontage;
+class UNiagaraSystem;
+class USoundBase;
+#pragma endregion 전방 선언
 /**
  * @file    KNPlayerStatTable.h
  * @brief   KatanaNeon에서 기획자가 CSV/DataTable로 조절하는 모든 '수치 데이터' 구조체 모음입니다.
@@ -218,6 +224,21 @@ struct KATANANEON_API FKNComboAttackRow : public FTableRowBase
     GENERATED_BODY()
 
 public:
+    // 스탠스와 배속 변수 추가 ──
+    /**
+     * @brief 이 콤보 공격이 요구하는 무기 스탠스입니다.
+     * @details 발도 상태일 때는 Drawn 콤보만, 납도 상태일 때는 Sheathed 콤보만 발동됩니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Info")
+    EKNWeaponStance RequiredStance = EKNWeaponStance::Drawn;
+
+    /**
+     * @brief 이 콤보 단계의 애니메이션 재생 배율 (1.0 = 기본 속도).
+     * @details 발도술은 1.2 등 빠르게, 검술은 0.8 등 묵직하게 기획자가 직접 타격감을 조절합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Combat", meta = (ClampMin = 0.1f, ClampMax = 5.0f))
+    float PlayRate = 1.0f;
+
     /**
      * @brief 콤보 단계 (1 ~ 5).
      * @details 강공 N은 약공 N-1회 입력 직후 우클릭으로 파생됩니다.
@@ -274,7 +295,7 @@ public:
 
     /** @brief 적에게 적중(Hit)했을 때 터뜨릴 이펙트 (VFX) */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
-    TObjectPtr<class UNiagaraSystem> HitVFX = nullptr;
+    TObjectPtr<UNiagaraSystem> HitVFX = nullptr;
 
     /** @brief 적에게 적중(Hit)했을 때 재생할 타격음 (SFX) */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")

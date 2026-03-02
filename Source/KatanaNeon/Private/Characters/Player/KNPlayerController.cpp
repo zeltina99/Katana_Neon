@@ -56,6 +56,7 @@ void AKNPlayerController::SetupInputComponent()
     if (InputDataConfig->DashAction)        EIC->BindAction(InputDataConfig->DashAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Dash);
     if (InputDataConfig->ParryAction)       EIC->BindAction(InputDataConfig->ParryAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Parry);
     if (InputDataConfig->ChronosAction)     EIC->BindAction(InputDataConfig->ChronosAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_Chronos);
+    if (InputDataConfig->ToggleStanceAction)EIC->BindAction(InputDataConfig->ToggleStanceAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_ToggleStance);
 
     // ── 오버클럭 ──
     if (InputDataConfig->OverclockLv1Action) EIC->BindAction(InputDataConfig->OverclockLv1Action, ETriggerEvent::Started, this, &AKNPlayerController::Input_OverclockLv1);
@@ -157,6 +158,12 @@ void AKNPlayerController::Input_Parry(const FInputActionValue&)
 void AKNPlayerController::Input_Chronos(const FInputActionValue&)
 {
     TryActivateAbilityByTag(KatanaNeon::Ability::Skill::Chronos);
+}
+
+void AKNPlayerController::Input_ToggleStance(const FInputActionValue& Value)
+{
+    /** @brief Tab 키를 누르면 무기 토글 어빌리티(발도/납도 몽타주 재생)를 호출합니다. */
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::ToggleWeapon);
 }
 
 void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)

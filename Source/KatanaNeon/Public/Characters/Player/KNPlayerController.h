@@ -70,6 +70,7 @@ protected:
     void Input_Parry(const FInputActionValue& Value);
     void Input_Dash(const FInputActionValue& Value);
     void Input_Chronos(const FInputActionValue& Value);
+    void Input_ToggleStance(const FInputActionValue& Value);
 
     // ── 오버클럭 스킬 ──
     void Input_OverclockLv1(const FInputActionValue& Value);

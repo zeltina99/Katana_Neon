@@ -72,6 +72,13 @@ public:
     /** @brief 순간 이동 및 저스트 회피 판정 (스태미나 소모 / Alt, B버튼) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input|Combat")
     TObjectPtr<UInputAction> DashAction = nullptr;
+
+    /**
+     * @brief 무기 스탠스 전환(발도/납도 토글) 입력 액션입니다.
+     * @details 주로 Tab 키에 바인딩되며, ToggleWeapon 어빌리티를 호출합니다.
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Input|Combat")
+    TObjectPtr<UInputAction> ToggleStanceAction = nullptr;
 #pragma endregion 전투 액션
 
 #pragma region 특수 스킬 액션 (Skills)

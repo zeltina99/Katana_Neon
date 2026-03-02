@@ -69,7 +69,8 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(FlurryRush, "KatanaNeon.State.Combat.FlurryRush")
             UE_DEFINE_GAMEPLAY_TAG(Parrying, "KatanaNeon.State.Combat.Parrying")
 
-            // ── 신규 크로노스 / 오버클럭 상태 ───────────────
+            // ── 신규 크로노스 / 오버클럭 / 스탠스 상태 ───────────────
+            UE_DEFINE_GAMEPLAY_TAG(WeaponDrawn, "KatanaNeon.State.Combat.WeaponDrawn")
             UE_DEFINE_GAMEPLAY_TAG(ChronosActive, "KatanaNeon.State.Combat.ChronosActive")
             UE_DEFINE_GAMEPLAY_TAG(Groggy, "KatanaNeon.State.Combat.Groggy")
             UE_DEFINE_GAMEPLAY_TAG(StaminaImmune, "KatanaNeon.State.Combat.StaminaImmune")
@@ -108,6 +109,7 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(Attack, "KatanaNeon.Ability.Combat.Attack")
             UE_DEFINE_GAMEPLAY_TAG(Parry, "KatanaNeon.Ability.Combat.Parry")
             UE_DEFINE_GAMEPLAY_TAG(Dash, "KatanaNeon.Ability.Combat.Dash")
+            UE_DEFINE_GAMEPLAY_TAG(ToggleWeapon, "KatanaNeon.Ability.Combat.ToggleWeapon")
             UE_DEFINE_GAMEPLAY_TAG(Chronos, "KatanaNeon.Ability.Combat.Chronos")
         }
         // 적 전용 어빌리티 태그

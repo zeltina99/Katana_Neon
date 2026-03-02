@@ -57,6 +57,36 @@ protected:
     float MaxCameraPitch = 20.0f;
 #pragma endregion 카메라 세팅
 
+#pragma region 무기 시스템 (발도/납도 마술)
+public:
+    /**
+     * @brief 발도 애니메이션 노티파이(AN_EquipKatana)에서 호출되어 카타나를 오른손으로 이동시킵니다.
+     * @details 무기 장착 상태 태그(WeaponDrawn)를 ASC에 동적으로 부여합니다.
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Weapon")
+    void EquipWeapon();
+
+    /**
+     * @brief 납도 애니메이션 노티파이(AN_UnequipKatana)에서 호출되어 카타나를 왼쪽 허리로 이동시킵니다.
+     * @details 무기 장착 상태 태그(WeaponDrawn)를 ASC에서 제거합니다.
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Weapon")
+    void UnequipWeapon();
+
+    /** @brief 현재 무기를 들고 있는지 여부 (애니메이션 블루프린트에서 Idle 분기용으로 사용) */
+    UPROPERTY(BlueprintReadOnly, Category = "KatanaNeon|Weapon")
+    bool bIsWeaponDrawn = false;
+
+protected:
+    /** @brief 캐릭터가 쥐고 있는 카타나 메쉬 */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|Weapon")
+    TObjectPtr<UStaticMeshComponent> KatanaMesh = nullptr;
+
+    /** @brief 왼손에 쥐고 있는 칼집 메쉬 */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|Weapon")
+    TObjectPtr<UStaticMeshComponent> SheathMesh = nullptr;
+#pragma endregion 무기 시스템
+
 #pragma region 컴포넌트
 private:
     /** @brief 캐릭터 뒤에서 카메라를 지지해주는 붐 암(Boom Arm)입니다. */

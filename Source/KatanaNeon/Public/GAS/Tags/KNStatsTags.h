@@ -96,7 +96,13 @@ namespace KatanaNeon
             /** @brief 패링 판정 창이 열려있는 상태 (퍼펙트 패링 판정용) */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Parrying)
 
-            // ── 신규 크로노스 / 오버클럭 상태 ───────────────
+            // ── 신규 크로노스 / 오버클럭 / 스탠스 상태 ───────────────
+            /**
+             * @brief 캐릭터가 무기를 뽑아 들고 있는(발도) 상태를 나타내는 태그입니다.
+             * @details 애니메이션 블루프린트(ABP)와 전투 콤보 판정에 활용됩니다.
+             */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WeaponDrawn)
+
             /**
              * @brief 크로노스 구체가 현재 활성화된 상태.
              * @details UKNAbility_Chronos::ActivateAbility()에서 Loose로 부여됩니다.
@@ -185,6 +191,10 @@ namespace KatanaNeon
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Parry)
             /** @brief 대시(순간 무적 프레임) 어빌리티 식별 태그 */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dash)
+            /**
+             * @brief 발도/납도를 전환하는 무기 스왑 어빌리티 식별 태그입니다.
+             */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ToggleWeapon)
             /**
              * @brief 크로노스(구체 범위 감속) 어빌리티 식별 태그.
              * @details UKNAbility_Chronos::AbilityTags에 등록됩니다.
