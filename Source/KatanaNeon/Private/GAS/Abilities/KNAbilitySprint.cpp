@@ -15,8 +15,6 @@ UKNAbilitySprint::UKNAbilitySprint()
     TempTags.AddTag(KatanaNeon::Ability::Movement::Sprint);
     SetAssetTags(TempTags);
 
-    AbilityTags.AddTag(KatanaNeon::Ability::Movement::Sprint);
-
     // 달리기 상태를 인스턴스에 유지해야 하므로 Instanced 필수
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
