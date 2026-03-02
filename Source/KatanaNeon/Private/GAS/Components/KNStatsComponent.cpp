@@ -6,6 +6,9 @@
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GAS/Tags/KNStatsTags.h"
 
@@ -70,6 +73,21 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetChronosAttribute())
         .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
         OnChronosChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxChronos());
+            });
+
+    /**
+     * @brief 이동 속도 동기화 델리게이트
+     * GAS의 이동 속도 스탯이 변경될 때마다(버프 획득/해제 등) 실제 캡슐 물리 엔진(MaxWalkSpeed)에 즉각 반영합니다.
+     */
+    ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMovementSpeedAttribute())
+        .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
+        if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+        {
+            if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
+            {
+                MovementComp->MaxWalkSpeed = Data.NewValue;
+            }
+        }
             });
 
     // 오버클럭 자동 태그 시스템 콜백 등록

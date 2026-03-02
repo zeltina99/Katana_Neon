@@ -70,18 +70,5 @@ void UKNAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
         // 공속은 최소 0.1 이상 유지 (0이 되면 애니메이션 멈춤 방지)
         SetAttackSpeed(FMath::Max(0.1f, GetAttackSpeed()));
     }
-    else if (Data.EvaluatedData.Attribute == GetMovementSpeedAttribute())
-    {
-        SetMovementSpeed(FMath::Max(0.0f, GetMovementSpeed()));
-
-        // 이동 속도 변경 시 실제 캐릭터 컴포넌트에 즉각 동기화
-        if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwningActor()))
-        {
-            if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
-            {
-                MovementComp->MaxWalkSpeed = GetMovementSpeed();
-            }
-        }
-    }
 }
 #pragma endregion GAS 핵심 오버라이드 함수 구현
