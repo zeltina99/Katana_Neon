@@ -44,6 +44,8 @@ void UKNAbilitySprint::ActivateAbility(
     const FGameplayAbilityActivationInfo ActivationInfo,
     const FGameplayEventData* TriggerEventData)
 {
+    UE_LOG(LogTemp, Error, TEXT("[KNSprint] ActivateAbility 호출됨 - StackTrace 확인"));
+
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -69,6 +71,11 @@ void UKNAbilitySprint::ActivateAbility(
         {
             Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MovementSpeed, SpeedDelta);
             ActiveSprintGEHandle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+
+            UE_LOG(LogTemp, Error, TEXT("[KNSprint] SpeedDelta=%.1f / GEHandle Valid=%d / SprintBuffGEClass=%s"),
+                SpeedDelta,
+                ActiveSprintGEHandle.IsValid(),
+                *SprintBuffGEClass->GetName());
         }
     }
 }

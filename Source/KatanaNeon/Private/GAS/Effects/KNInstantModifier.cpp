@@ -49,33 +49,42 @@ void UKNInstantModifierExecution::Execute_Implementation(
     const FGameplayEffectCustomExecutionParameters& ExecutionParams,
     FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
+
     const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-    
-    // 3곳에서 복붙되던 로직을 한 줄로 깔끔하게 호출합니다.
     const TMap<FGameplayTag, FGameplayAttribute>& AttributeMap = FKNGASAttributeCache::Get();
 
-    // SetByCaller 전체를 순회하여 기획자가 넘긴 데이터만큼 즉시 증감시킵니다.
+    // ── 최적화: TArray 대신 TSet으로 O(1) Contains 보장 ──
+    static const TSet<FGameplayTag> MaxFirstTags = {
+        KatanaNeon::Data::Stats::MaxHealth,
+        KatanaNeon::Data::Stats::MaxStamina,
+        KatanaNeon::Data::Stats::MaxChronos,
+        KatanaNeon::Data::Stats::MaxOverclockPoint
+    };
+
+    // ── 1단계: Max 어트리뷰트 먼저 처리 ──
+    for (const FGameplayTag& Tag : MaxFirstTags)
+    {
+        const float* MagnitudePtr = Spec.SetByCallerTagMagnitudes.Find(Tag);
+        if (!MagnitudePtr || FMath::IsNearlyZero(*MagnitudePtr)) continue;
+
+        const FGameplayAttribute* AttrPtr = AttributeMap.Find(Tag);
+        if (!AttrPtr || !AttrPtr->IsValid()) continue;
+
+        OutExecutionOutput.AddOutputModifier(
+            FGameplayModifierEvaluatedData(*AttrPtr, EGameplayModOp::Additive, *MagnitudePtr));
+    }
+
+    // ── 2단계: 나머지 어트리뷰트 처리 ──
     for (const auto& [Tag, Magnitude] : Spec.SetByCallerTagMagnitudes)
     {
-        // 유효하지 않거나 0이면 건너뛰어 불필요한 Modifier 연산을 아예 막아버립니다.
-        if (!Tag.IsValid() || FMath::IsNearlyZero(Magnitude))
-        {
-            continue;
-        }
+        if (MaxFirstTags.Contains(Tag)) continue; // O(1)
+        if (!Tag.IsValid() || FMath::IsNearlyZero(Magnitude)) continue;
 
-        // 최적화: 캐시 맵에서 즉시 끄집어냅니다 (O(1) 속도).
-        const FGameplayAttribute* TargetAttrPtr = AttributeMap.Find(Tag);
+        const FGameplayAttribute* AttrPtr = AttributeMap.Find(Tag);
+        if (!AttrPtr || !AttrPtr->IsValid()) continue;
 
-        if (!TargetAttrPtr || !TargetAttrPtr->IsValid())
-        {
-            UE_LOG(LogTemp, Warning,
-                TEXT("[KNInstantModifierExec] 캐시 맵에 매핑되지 않은 태그: %s"), *Tag.ToString());
-            continue;
-        }
-
-        // Additive 수정 적용 (양수 = 회복/획득, 음수 = 피해/소모)
         OutExecutionOutput.AddOutputModifier(
-            FGameplayModifierEvaluatedData(*TargetAttrPtr, EGameplayModOp::Additive, Magnitude));
+            FGameplayModifierEvaluatedData(*AttrPtr, EGameplayModOp::Additive, Magnitude));
     }
 }
 #pragma endregion Execution Calculation 최적화 구현

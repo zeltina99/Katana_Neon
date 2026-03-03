@@ -89,10 +89,19 @@ void AKNPlayerController::CancelAbilityByTag(const FGameplayTag& Tag)
     {
         if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
         {
-            FGameplayTagContainer CancelTagContainer;
-            CancelTagContainer.AddTag(Tag);
+            TArray<FGameplayAbilitySpec*> MatchingSpecs;
+            ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+                FGameplayTagContainer(Tag),
+                MatchingSpecs,
+                /*bOnlyAbilitiesThatSatisfyTagRequirements=*/false);
 
-            ASC->CancelAbilities(&CancelTagContainer);
+            for (FGameplayAbilitySpec* Spec : MatchingSpecs)
+            {
+                if (Spec && Spec->IsActive())
+                {
+                    ASC->CancelAbilityHandle(Spec->Handle);
+                }
+            }
         }
     }
 }
@@ -130,6 +139,18 @@ void AKNPlayerController::Input_JumpStop(const FInputActionValue&)
     {
         ControlledCharacter->StopJumping();
     }
+}
+
+void AKNPlayerController::Input_SprintStart(const FInputActionValue&)
+{
+    /** @brief 달리기 키를 누르면 Sprint 태그를 가진 어빌리티를 활성화합니다. */
+    TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
+}
+
+void AKNPlayerController::Input_SprintStop(const FInputActionValue&)
+{
+    /** @brief 달리기 키를 떼면 Sprint 태그를 가진 어빌리티를 깔끔하게 종료합니다. */
+    CancelAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
 }
 
 // ── GAS 어빌리티 호출 로직 (공통 헬퍼 사용으로 획기적 최적화) ──
@@ -182,17 +203,6 @@ void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&)
 }
 
 // 기타 유틸리티 액션
-void AKNPlayerController::Input_SprintStart(const FInputActionValue&)
-{
-    /** @brief 달리기 키를 누르면 Sprint 태그를 가진 어빌리티를 활성화합니다. */
-    TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
-}
-
-void AKNPlayerController::Input_SprintStop(const FInputActionValue&)
-{
-    /** @brief 달리기 키를 떼면 Sprint 태그를 가진 어빌리티를 깔끔하게 종료합니다. */
-    CancelAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
-}
 void AKNPlayerController::Input_LockOn(const FInputActionValue&) {}
 void AKNPlayerController::Input_Interact(const FInputActionValue&) {}
 void AKNPlayerController::Input_Potion(const FInputActionValue&) {}

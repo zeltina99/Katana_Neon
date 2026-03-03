@@ -47,6 +47,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Movement")
     float MovementSpeed = 600.0f;
 
+    /** @brief 기본 공격 속도 배율 (1.0 = 100%) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Combat")
+    float AttackSpeed = 1.0f;
+
     /**
      * @brief 달리기(Sprint) 시 적용되는 최대 이동 속도 (cm/s).
      * @details IA_Sprint 입력 유지 시 이 속도로 전환됩니다.
@@ -336,6 +340,10 @@ public:
     /** @brief 오버클럭 포인트 최대치 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Threshold")
     float MaxOverclockPoint = 300.0f;
+
+    /** @brief 게임 시작 시 오버클럭 초기 포인트 (보통 0) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Overclock")
+    float InitialOverclockPoint = 0.0f;
 
     /** @brief Lv1 진입 임계값 (전술기 해금) */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Stats|Overclock|Threshold")

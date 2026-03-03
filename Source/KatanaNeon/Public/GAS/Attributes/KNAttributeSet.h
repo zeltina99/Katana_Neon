@@ -44,6 +44,21 @@ public:
      * @param Data 적용된 GameplayEffect에 대한 상세 데이터
      */
     virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+    /**
+     * @brief UE5.5 권장 방식: 어트리뷰트 값이 완전히 변경된 직후 호출됩니다.
+     * @details GAS는 GE 내 모든 Modifier를 한꺼번에 적용하기 때문에,
+     *          PostGameplayEffectExecute 시점에 MaxHealth가 아직 0일 수 있습니다.
+     *          PostAttributeChange는 개별 어트리뷰트가 완전히 확정된 뒤 호출되므로
+     *          Max 변경 후 현재값 재보정에 사용합니다.
+     * @param Attribute 변경된 어트리뷰트
+     * @param OldValue 변경 이전 값
+     * @param NewValue 변경 이후 확정 값
+     */
+    virtual void PostAttributeChange(
+        const FGameplayAttribute& Attribute,
+        float OldValue,
+        float NewValue) override;
 #pragma endregion GAS 핵심 오버라이드 함수
 
 #pragma region 생존 및 기동 어트리뷰트

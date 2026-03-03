@@ -81,6 +81,7 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
      */
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMovementSpeedAttribute())
         .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
+
         if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
         {
             if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
@@ -164,6 +165,8 @@ void UKNStatsComponent::ApplyBaseStats(const FKNBaseStatRow* BaseStatRow, const 
 {
     if (!ASC || !InstantGEClass || !BaseStatRow || !OCRow) return;
 
+    UE_LOG(LogTemp, Error, TEXT("[ApplyBaseStats] 호출됨 - %s"), *GetOwner()->GetName());
+
     FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
     FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InstantGEClass, 1.0f, Context);
     if (FGameplayEffectSpec* Spec = SpecHandle.Data.Get())
@@ -176,7 +179,9 @@ void UKNStatsComponent::ApplyBaseStats(const FKNBaseStatRow* BaseStatRow, const 
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MovementSpeed, BaseStatRow->MovementSpeed);
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MaxChronos, BaseStatRow->MaxChronos);
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Chronos, BaseStatRow->MaxChronos);
+        Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::AttackSpeed, BaseStatRow->AttackSpeed);
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::MaxOverclockPoint, OCRow->MaxOverclockPoint);
+        Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::OverclockPoint, OCRow->InitialOverclockPoint);
 
         ASC->ApplyGameplayEffectSpecToSelf(*Spec);
     }
@@ -263,6 +268,7 @@ void UKNStatsComponent::RemoveInfiniteBuff(const FGameplayTag& HandleKey)
 void UKNStatsComponent::ApplyDurationBuff(const FGameplayTag& StatTag, float Delta, float Duration)
 {
     if (!ASC || !DurationGEClass || !StatTag.IsValid() || Duration <= 0.0f) return;
+
 
     FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
     FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(DurationGEClass, 1.0f, Context);
