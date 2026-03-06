@@ -111,6 +111,7 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(Dash, "KatanaNeon.Ability.Combat.Dash")
             UE_DEFINE_GAMEPLAY_TAG(ToggleWeapon, "KatanaNeon.Ability.Combat.ToggleWeapon")
             UE_DEFINE_GAMEPLAY_TAG(Chronos, "KatanaNeon.Ability.Combat.Chronos")
+            UE_DEFINE_GAMEPLAY_TAG(LockOn, "KatanaNeon.Ability.Combat.LockOn")
         }
         // 적 전용 어빌리티 태그
         namespace Enemy

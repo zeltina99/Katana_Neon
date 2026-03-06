@@ -102,3 +102,27 @@ void AKNPlayerCharacter::UnequipWeapon()
     }
 }
 #pragma endregion 무기 스왑 제어 구현
+
+#pragma region 락온 시스템 구현
+void AKNPlayerCharacter::SetLockOnState(bool bNewLockOn)
+{
+    bIsLockOn = bNewLockOn;
+
+    // 포인터 유효성 검사를 통한 방어적 프로그래밍
+    if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+    {
+        if (bIsLockOn)
+        {
+            // [락온 활성화] 타겟을 바라보며 8방향 게걸음 스텝 활성화
+            MoveComp->bOrientRotationToMovement = false;
+            bUseControllerRotationYaw = true;
+        }
+        else
+        {
+            // [락온 해제] 입력한 방향으로 몸을 돌리며 1D 전진 활성화
+            bUseControllerRotationYaw = false;
+            MoveComp->bOrientRotationToMovement = true;
+        }
+    }
+}
+#pragma endregion 락온 시스템 구현

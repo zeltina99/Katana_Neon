@@ -87,6 +87,28 @@ protected:
     TObjectPtr<UStaticMeshComponent> SheathMesh = nullptr;
 #pragma endregion 무기 시스템
 
+#pragma region 락온 시스템
+public:
+    /**
+     * @brief 락온 상태를 설정하고 캐릭터의 이동 및 회전 제어권을 전환합니다.
+     * @param bNewLockOn 활성화할 락온 상태 (true: 락온 켬, false: 락온 끔)
+     * @details
+     * [SRP 책임]
+     * 컨트롤러의 입력에 따라 캐릭터가 스스로 무브먼트 상태(자유 이동 vs 8방향 전투 이동)를 결정하도록 캡슐화합니다.
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Combat")
+    void SetLockOnState(bool bNewLockOn);
+
+    /** @brief 현재 락온 상태를 반환합니다. (애님 블루프린트 1D/2D 분기 참조용) */
+    UFUNCTION(BlueprintPure, Category = "KatanaNeon|Combat")
+    bool GetIsLockOn() const { return bIsLockOn; }
+
+protected:
+    /** @brief 현재 캐릭터가 락온 상태인지 여부입니다. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|Combat", meta = (AllowPrivateAccess = "true"))
+    bool bIsLockOn = false;
+#pragma endregion 락온 시스템
+
 #pragma region 컴포넌트
 private:
     /** @brief 캐릭터 뒤에서 카메라를 지지해주는 붐 암(Boom Arm)입니다. */

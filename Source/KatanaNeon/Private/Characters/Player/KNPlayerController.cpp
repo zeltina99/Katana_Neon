@@ -203,7 +203,11 @@ void AKNPlayerController::Input_OverclockLv3(const FInputActionValue&)
 }
 
 // 기타 유틸리티 액션
-void AKNPlayerController::Input_LockOn(const FInputActionValue&) {}
+void AKNPlayerController::Input_LockOn(const FInputActionValue&)
+{
+    /** @brief 락온 키를 누르면 LockOn 태그를 가진 어빌리티를 토글 방식으로 활성화합니다. */
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::LockOn);
+}
 void AKNPlayerController::Input_Interact(const FInputActionValue&) {}
 void AKNPlayerController::Input_Potion(const FInputActionValue&) {}
 void AKNPlayerController::Input_PauseMenu(const FInputActionValue&)

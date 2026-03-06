@@ -201,6 +201,8 @@ namespace KatanaNeon
              * @note 기존 GlobalTimeDilation 방식 크로노스는 Ability::Skill::Chronos를 사용합니다.
              */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Chronos)
+            /** @brief 락온 상태를 토글하는 어빌리티 식별 태그입니다. */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(LockOn)
         }
 
         // 적 전용 어빌리티 태그
