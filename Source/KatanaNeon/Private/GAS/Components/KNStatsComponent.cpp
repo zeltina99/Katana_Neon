@@ -107,31 +107,20 @@ void UKNStatsComponent::GainOverclockPoint(float GainAmount)
 
 bool UKNStatsComponent::ConsumeOverclockLevel(int32 Level)
 {
-    if (!ASC) return false;
+    if (!ASC || !AttributeSet) return false;
 
-    FGameplayTag TargetTag;
     float ConsumeAmount = 0.0f;
 
-    /// 하드코딩 수치(100.0f) 제거, 기획자가 조절한 데이터 드라이븐 캐시 사용
     switch (Level)
     {
-    case 1:
-        TargetTag = KatanaNeon::State::Overclock::Lv1;
-        ConsumeAmount = OverclockSetting.Lv1Threshold;
-        break;
-    case 2:
-        TargetTag = KatanaNeon::State::Overclock::Lv2;
-        ConsumeAmount = OverclockSetting.Lv2Threshold;
-        break;
-    case 3:
-        TargetTag = KatanaNeon::State::Overclock::Lv3;
-        ConsumeAmount = OverclockSetting.Lv3Threshold;
-        break;
-    default:
-        return false;
+    case 1: ConsumeAmount = OverclockSetting.Lv1Threshold; break;
+    case 2: ConsumeAmount = OverclockSetting.Lv2Threshold; break;
+    case 3: ConsumeAmount = OverclockSetting.Lv3Threshold; break;
+    default: return false;
     }
 
-    if (!ASC->HasMatchingGameplayTag(TargetTag)) return false;
+    // 태그 대신 실제 포인트 값으로 직접 판단
+    if (AttributeSet->GetOverclockPoint() < ConsumeAmount) return false;
 
     ApplyInstantGEInternal(KatanaNeon::Data::Stats::OverclockPoint, -ConsumeAmount);
     return true;

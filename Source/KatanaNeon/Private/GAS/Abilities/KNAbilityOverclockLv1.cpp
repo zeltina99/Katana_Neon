@@ -11,16 +11,16 @@
 #pragma region 기본 생성자 및 초기화 구현
 UKNAbilityOverclockLv1::UKNAbilityOverclockLv1()
 {
-    // ── UE 5.5 최신 규약 적용 (경고 제거) ──
-    FGameplayTagContainer TempTags;
-    TempTags.AddTag(KatanaNeon::Ability::Overclock::Lv1);
-    SetAssetTags(TempTags);
+    //// ── UE 5.5 최신 규약 적용 (경고 제거) ──
+    //FGameplayTagContainer TempTags;
+    //TempTags.AddTag(KatanaNeon::Ability::Overclock::Lv1);
+    //SetAssetTags(TempTags);
 
-    // 오버클럭 Lv1 태그 없으면 자동 차단
-    ActivationRequiredTags.AddTag(KatanaNeon::State::Overclock::Lv1);
+    //// 오버클럭 Lv1 태그 없으면 자동 차단
+    //ActivationRequiredTags.AddTag(KatanaNeon::State::Overclock::Lv1);
 
-    // 전술 강화 중복 발동 불가
-    ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::OverclockTactical);
+    //// 전술 강화 중복 발동 불가
+    //ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::OverclockTactical);
 
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
@@ -36,9 +36,13 @@ void UKNAbilityOverclockLv1::ActivateAbility(
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+    // [디버그] 어빌리티가 정상적으로 호출되었는지 1차 확인
+    UE_LOG(LogTemp, Warning, TEXT("[OverclockLv1] 1번 키 입력 감지 -> 어빌리티 진입 성공!"));
+
     // ── 1. DataTable 수치 로드 (DDD) ──
     if (!LoadLv1Setting())
     {
+        UE_LOG(LogTemp, Error, TEXT("[OverclockLv1] 사망 원인: LoadLv1Setting 실패 (에디터에서 DT 할당 안 됨)"));
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }
@@ -46,6 +50,7 @@ void UKNAbilityOverclockLv1::ActivateAbility(
     // ── 2. 오버클럭 포인트 소모 ──
     if (!ConsumeOverclockLevel())
     {
+        UE_LOG(LogTemp, Error, TEXT("[OverclockLv1] 사망 원인: ConsumeOverclockLevel 실패 (포인트를 100 채웠어도 소모 로직에서 false 반환)"));
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }

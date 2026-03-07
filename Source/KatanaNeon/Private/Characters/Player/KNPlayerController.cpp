@@ -189,7 +189,26 @@ void AKNPlayerController::Input_ToggleStance(const FInputActionValue& Value)
 
 void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
 {
-    TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv1);
+    UE_LOG(LogTemp, Warning, TEXT("[Controller] 1번 키 눌림! ASC에 Lv1 태그 전달 시도 중..."));
+   
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[Controller] 등록된 어빌리티: %s"),
+                    *Spec.Ability->GetClass()->GetName());
+            }
+
+            bool bResult = ASC->TryActivateAbilitiesByTag(
+                FGameplayTagContainer(FGameplayTag::RequestGameplayTag("KatanaNeon.Ability.Overclock.Lv1")));
+
+            UE_LOG(LogTemp, Error, TEXT("[Controller] TryActivate 결과: %d"), bResult);
+        }
+    }
+
+    // TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv1);
 }
 
 void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&)
