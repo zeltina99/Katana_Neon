@@ -12,15 +12,15 @@
 UKNAbilityOverclockLv1::UKNAbilityOverclockLv1()
 {
     //// ── UE 5.5 최신 규약 적용 (경고 제거) ──
-    //FGameplayTagContainer TempTags;
-    //TempTags.AddTag(KatanaNeon::Ability::Overclock::Lv1);
-    //SetAssetTags(TempTags);
+    FGameplayTagContainer TempTags;
+    TempTags.AddTag(KatanaNeon::Ability::Overclock::Lv1);
+    SetAssetTags(TempTags);
 
     //// 오버클럭 Lv1 태그 없으면 자동 차단
     //ActivationRequiredTags.AddTag(KatanaNeon::State::Overclock::Lv1);
 
     //// 전술 강화 중복 발동 불가
-    //ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::OverclockTactical);
+    ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::OverclockTactical);
 
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;

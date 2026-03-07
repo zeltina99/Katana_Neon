@@ -112,24 +112,5 @@ void UKNAttributeSet::PostAttributeChange(
     {
         OldValue <= 0.0f ? SetOverclockPoint(0.0f) : SetOverclockPoint(FMath::Clamp(GetOverclockPoint(), 0.0f, NewValue));
     }
-    else if (Attribute == GetMovementSpeedAttribute())
-    {
-        // 언리얼 엔진 5.5 규격: TWeakObjectPtr를 사용하여 댕글링 포인터 참조를 방지합니다.
-        TWeakObjectPtr<AActor> OwnerActorPtr = GetOwningActor();
-        if (OwnerActorPtr.IsValid() && OwnerActorPtr != nullptr)
-        {
-            // 상단에 선언하신 GameFramework/Character.h 를 활용하여 캐스팅
-            ACharacter* Character = Cast<ACharacter>(OwnerActorPtr.Get());
-            if (Character != nullptr)
-            {
-                UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement();
-                if (MovementComp != nullptr)
-                {
-                    // GAS의 스탯 값(예: 650)을 실제 캐릭터 이동 속도에 덮어씌웁니다.
-                    MovementComp->MaxWalkSpeed = NewValue;
-                }
-            }
-        }
-    }
 }
 #pragma endregion GAS 핵심 오버라이드 함수 구현
