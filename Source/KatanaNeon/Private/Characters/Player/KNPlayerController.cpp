@@ -45,8 +45,7 @@ void AKNPlayerController::SetupInputComponent()
 
     if (InputDataConfig->SprintAction)
     {
-        EIC->BindAction(InputDataConfig->SprintAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_SprintStart);
-        EIC->BindAction(InputDataConfig->SprintAction, ETriggerEvent::Completed, this, &AKNPlayerController::Input_SprintStop);
+        EIC->BindAction(InputDataConfig->SprintAction, ETriggerEvent::Started, this, &AKNPlayerController::Input_SprintToggle);
     }
 
     // ── 전투 및 어빌리티 ──
@@ -141,16 +140,34 @@ void AKNPlayerController::Input_JumpStop(const FInputActionValue&)
     }
 }
 
-void AKNPlayerController::Input_SprintStart(const FInputActionValue&)
+void AKNPlayerController::Input_SprintToggle(const FInputActionValue&)
 {
-    /** @brief 달리기 키를 누르면 Sprint 태그를 가진 어빌리티를 활성화합니다. */
-    TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
-}
+    /** @brief Shift 토글 시 Sprint 활성/비활성을 전환합니다. */
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            TArray<FGameplayAbilitySpec*> MatchingSpecs;
+            ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+                FGameplayTagContainer(KatanaNeon::Ability::Movement::Sprint),
+                MatchingSpecs,
+                /*bOnlyAbilitiesThatSatisfyTagRequirements=*/false);
 
-void AKNPlayerController::Input_SprintStop(const FInputActionValue&)
-{
-    /** @brief 달리기 키를 떼면 Sprint 태그를 가진 어빌리티를 깔끔하게 종료합니다. */
-    CancelAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
+            bool bIsActive = false;
+            for (FGameplayAbilitySpec* Spec : MatchingSpecs)
+            {
+                if (Spec && Spec->IsActive())
+                {
+                    bIsActive = true;
+                    break;
+                }
+            }
+
+            bIsActive
+                ? CancelAbilityByTag(KatanaNeon::Ability::Movement::Sprint)
+                : TryActivateAbilityByTag(KatanaNeon::Ability::Movement::Sprint);
+        }
+    }
 }
 
 // ── GAS 어빌리티 호출 로직 (공통 헬퍼 사용으로 획기적 최적화) ──
@@ -191,7 +208,7 @@ void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
 {
     UE_LOG(LogTemp, Warning, TEXT("[Controller] 1번 키 눌림! ASC에 Lv1 태그 전달 시도 중..."));
    
-    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    /*if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
     {
         if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
         {
@@ -206,9 +223,9 @@ void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
 
             UE_LOG(LogTemp, Error, TEXT("[Controller] TryActivate 결과: %d"), bResult);
         }
-    }
+    }*/
 
-    // TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv1);
+    TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv1);
 }
 
 void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&)

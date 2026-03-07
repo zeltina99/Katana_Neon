@@ -60,8 +60,7 @@ protected:
     void Input_Look(const FInputActionValue& Value);
     void Input_JumpStart(const FInputActionValue& Value);
     void Input_JumpStop(const FInputActionValue& Value);
-    void Input_SprintStart(const FInputActionValue& Value);
-    void Input_SprintStop(const FInputActionValue& Value);
+    void Input_SprintToggle(const FInputActionValue&);
     void Input_LockOn(const FInputActionValue& Value);
 
     // ── 전투 및 스킬 (GAS 어빌리티 연동) ──
