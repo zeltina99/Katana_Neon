@@ -6,6 +6,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "Components/CapsuleComponent.h"
 #include "GAS/Attributes/KNAttributeSet.h"
+#include "GAS/Tags/KNStatsTags.h"
 
 #pragma region 기본 생성자 및 초기화 구현
 AKNCharacterBase::AKNCharacterBase()
@@ -35,6 +36,21 @@ void AKNCharacterBase::BeginPlay()
     }
 }
 #pragma endregion 기본 생성자 및 초기화 구현
+
+#pragma region 캐릭터 상태 관리 구현
+void AKNCharacterBase::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+
+    if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+    {
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Movement::DoubleJumped))
+        {
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Movement::DoubleJumped);
+        }
+    }
+}
+#pragma endregion 캐릭터 상태 관리 구현
 
 #pragma region GAS 인터페이스 구현
 UAbilitySystemComponent* AKNCharacterBase::GetAbilitySystemComponent() const

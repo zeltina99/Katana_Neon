@@ -35,6 +35,9 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    /** @brief 착지 시 공중 상태 태그(DoubleJumped 등)를 초기화합니다. */
+    virtual void Landed(const FHitResult& Hit) override;
 #pragma endregion 기본 생성자 및 초기화 끝
 
 #pragma region GAS 인터페이스 구현

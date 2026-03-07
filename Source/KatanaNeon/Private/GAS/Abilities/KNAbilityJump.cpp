@@ -51,6 +51,15 @@ bool UKNAbilityJump::CanActivateAbility(
     const bool bIsFalling = MoveComp->IsFalling();
     const float RequiredStamina = bIsFalling ? CostRow->DoubleJumpStaminaCost : CostRow->JumpStaminaCost;
 
+    if (const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+    {
+        if (const UKNAttributeSet* AttrSet = ASC->GetSet<UKNAttributeSet>())
+        {
+            UE_LOG(LogTemp, Error, TEXT("[Jump CanActivate] IsFalling: %d / 현재스태미나: %.1f / 필요스태미나: %.1f"),
+                bIsFalling, AttrSet->GetStamina(), RequiredStamina);
+        }
+    }
+
     // 공중일 경우: 더블 점프가 활성화되어 있는지, 그리고 이미 더블 점프를 소모했는지 검사
     if (bIsFalling)
     {
@@ -85,6 +94,7 @@ void UKNAbilityJump::ActivateAbility(
 
     if (!LoadJumpSetting())
     {
+        UE_LOG(LogTemp, Error, TEXT("[Jump] LoadJumpSetting 실패"));
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }
@@ -94,6 +104,7 @@ void UKNAbilityJump::ActivateAbility(
 
     if (!Character || !ASC)
     {
+        UE_LOG(LogTemp, Error, TEXT("[Jump] Character 또는 ASC 없음"));
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }
@@ -101,6 +112,7 @@ void UKNAbilityJump::ActivateAbility(
     UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
     if (!MoveComp)
     {
+        UE_LOG(LogTemp, Error, TEXT("[Jump] MoveComp 없음"));
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }
@@ -113,6 +125,7 @@ void UKNAbilityJump::ActivateAbility(
     {
         if (!ConsumeStamina(CostToConsume))
         {
+            UE_LOG(LogTemp, Error, TEXT("[Jump] 스태미나 부족"));
             EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
             return;
         }
@@ -121,10 +134,12 @@ void UKNAbilityJump::ActivateAbility(
     // 지상 vs 공중(더블점프) 분기 실행
     if (bIsFalling)
     {
+        UE_LOG(LogTemp, Error, TEXT("[Jump] PerformDoubleJump 진입"));
         PerformDoubleJump(Character, MoveComp, ASC);
     }
     else
     {
+        UE_LOG(LogTemp, Error, TEXT("[Jump] PerformGroundJump 진입"));
         PerformGroundJump(Character, MoveComp);
     }
 
@@ -166,17 +181,27 @@ bool UKNAbilityJump::LoadJumpSetting()
 bool UKNAbilityJump::ConsumeStamina(float CostAmount)
 {
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+    UE_LOG(LogTemp, Error, TEXT("[Jump ConsumeStamina] ASC: %d / StaminaCostGEClass: %d / CostAmount: %.1f"),
+        ASC != nullptr, StaminaCostGEClass != nullptr, CostAmount);
+
     if (!ASC || !StaminaCostGEClass) return false;
 
     FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
     FGameplayEffectSpecHandle    SpecHandle = ASC->MakeOutgoingSpec(StaminaCostGEClass, 1.0f, Context);
 
+    UE_LOG(LogTemp, Error, TEXT("[Jump ConsumeStamina] SpecHandle 유효: %d"), SpecHandle.Data.IsValid());
+
+
     if (FGameplayEffectSpec* Spec = SpecHandle.Data.Get())
     {
         // 캐싱된 비용(엑셀 데이터)만큼 차감
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Stamina, -CostAmount);
-        return ASC->ApplyGameplayEffectSpecToSelf(*Spec).IsValid();
+        ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+        return true;
     }
+
+    UE_LOG(LogTemp, Error, TEXT("[Jump ConsumeStamina] Spec 생성 실패"));
     return false;
 }
 
@@ -197,6 +222,10 @@ void UKNAbilityJump::PerformDoubleJump(AKNCharacterBase* Character, UCharacterMo
 
     // Z축 속도를 덮어씌워 공중에서 다시 튀어오르게 만듦
     Character->LaunchCharacter(FVector(0.0f, 0.0f, LaunchVelocity), false, true);
+
+     // ── 디버그 로그 추가 ──
+    UE_LOG(LogTemp, Error, TEXT("[DoubleJump] DoubleJumpMontage 유효: %d"),
+        DoubleJumpMontage != nullptr);
 
     // 기획자가 할당한 몽타주가 있다면 재생
     if (DoubleJumpMontage)
