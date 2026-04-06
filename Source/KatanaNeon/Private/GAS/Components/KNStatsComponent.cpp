@@ -68,6 +68,12 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetStaminaAttribute())
         .AddWeakLambda(this, [this](const FOnAttributeChangeData& Data) {
         OnStaminaChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxStamina());
+
+        // 스태미나가 소모된 경우에만 딜레이 타이머를 초기화합니다.
+        if (Data.NewValue < Data.OldValue)
+        {
+            RestartRegenDelay();
+        }
             });
 
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetChronosAttribute())
@@ -94,6 +100,9 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     // 오버클럭 자동 태그 시스템 콜백 등록
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetOverclockPointAttribute())
         .AddUObject(this, &UKNStatsComponent::OnOverclockPointChangedInternal);
+
+    // ── 스태미나 자연 회복 타이머 시작 (ApplyBaseStats 완료 후 시점 보장) ──
+    StartStaminaRegen();
 }
 #pragma endregion 기본 생성자 및 초기화 구현
 
@@ -219,6 +228,51 @@ bool UKNStatsComponent::ApplyInstantGEInternal(const FGameplayTag& StatTag, floa
         return Handle.IsValid();
     }
     return false;
+}
+
+void UKNStatsComponent::StartStaminaRegen()
+{
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    // 중복 실행 방지
+    if (World->GetTimerManager().IsTimerActive(StaminaRegenTimerHandle)) return;
+
+    World->GetTimerManager().SetTimer(
+        StaminaRegenTimerHandle,
+        this,
+        &UKNStatsComponent::OnStaminaRegenTick,
+        StaminaRegenTickInterval,
+        /*bLoop=*/true);
+}
+
+void UKNStatsComponent::OnStaminaRegenTick()
+{
+    if (!ASC || !AttributeSet) return;
+
+    // 이미 최대치면 GE 호출 비용 자체를 차단합니다.
+    if (AttributeSet->GetStamina() >= AttributeSet->GetMaxStamina()) return;
+
+    // 초당 회복량 × 틱 간격 = 이번 틱 회복량 (매직넘버 없이 어트리뷰트에서 직접 조회)
+    const float RegenThisTick = AttributeSet->GetStaminaRegenRate() * StaminaRegenTickInterval;
+    if (RegenThisTick <= 0.0f) return;
+
+    ApplyInstantGEInternal(KatanaNeon::Data::Stats::Stamina, RegenThisTick);
+}
+
+void UKNStatsComponent::RestartRegenDelay()
+{
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    // 진행 중인 리젠 틱을 중단하고 딜레이를 처음부터 다시 셉니다.
+    World->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+    World->GetTimerManager().SetTimer(
+        StaminaRegenDelayHandle,
+        this,
+        &UKNStatsComponent::StartStaminaRegen,
+        StaminaRegenDelaySeconds,
+        /*bLoop=*/false);
 }
 #pragma endregion 내부 콜백 및 헬퍼 구현
 

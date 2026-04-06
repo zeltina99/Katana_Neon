@@ -12,6 +12,7 @@
 class UAnimMontage;
 class AKNCharacterBase;
 class UAbilitySystemComponent;
+class UAbilityTask_PlayMontageAndWait;
 class UGameplayEffect;
 #pragma endregion 전방 선언
 
@@ -139,6 +140,9 @@ private:
 
     /** @brief 초기화 시 DataTable에서 읽어 캐싱한 액션 비용 */
     FKNActionCostRow CachedActionCost;
+
+    /** @brief 대시 몽타주 재생 중 여부 — 몽타주 종료 전까지 EndAbility를 지연시킵니다. */
+    bool bIsDashMontageActive = false;
 #pragma endregion 런타임 상태
 
 #pragma region 내부 헬퍼 함수
@@ -179,5 +183,13 @@ private:
      */
     UFUNCTION()
     void OnInvincibleExpired();
+
+    /**
+    * @brief 대시 몽타주가 완전히 종료된 후 호출됩니다.
+    * @details OnCompleted/OnBlendOut/OnInterrupted 모두 이 함수로 연결하여
+    *          몽타주가 끝나기 전까지 어빌리티가 종료되지 않도록 보장합니다.
+    */
+    UFUNCTION()
+    void OnDashMontageFinished();
 #pragma endregion 내부 헬퍼 함수
 };

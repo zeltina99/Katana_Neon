@@ -252,4 +252,45 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|GAS|DataTable")
     FDataTableRowHandle OverclockSettingRowHandle;
 #pragma endregion 런타임 캐시 및 시스템 할당 데이터베이스
+
+#pragma region 스태미나 리젠 내부 구현
+private:
+    /** @brief 스태미나 자연 회복 루프 타이머 핸들 */
+    FTimerHandle StaminaRegenTimerHandle;
+
+    /** @brief 스태미나 소모 후 리젠 시작까지의 딜레이 타이머 핸들 */
+    FTimerHandle StaminaRegenDelayHandle;
+
+    /**
+     * @brief 스태미나 자연 회복 타이머를 시작합니다.
+     * @details InitializeStatComponent 완료 후 호출됩니다.
+     *          StaminaRegenRate가 DataTable로 초기화된 이후 시점이 보장됩니다.
+     */
+    void StartStaminaRegen();
+
+    /**
+     * @brief 스태미나가 소모될 때마다 호출되어 딜레이 타이머를 초기화합니다.
+     * @details 딜레이 도중 추가 소모가 발생하면 1초를 처음부터 다시 셉니다.
+     */
+    void RestartRegenDelay();
+
+    /**
+     * @brief StaminaRegenTickInterval마다 호출되어 스태미나를 회복합니다.
+     * @details 이미 최대치이면 GE 호출 자체를 차단하여 불필요한 연산을 방지합니다.
+     */
+    UFUNCTION()
+    void OnStaminaRegenTick();
+#pragma endregion 스태미나 리젠 내부 구현
+
+#pragma region 스태미나 리젠 설정 데이터
+private:
+    /** @brief 스태미나 자연 회복 틱 간격 (초) */
+    static constexpr float StaminaRegenTickInterval = 0.1f;
+
+    /**
+     * @brief 스태미나 소모 후 리젠이 시작되기까지의 대기 시간 (초).
+     * @details 소모가 연속으로 발생하면 이 딜레이가 매번 초기화됩니다.
+     */
+    static constexpr float StaminaRegenDelaySeconds = 1.0f;
+#pragma endregion 스태미나 리젠 설정 데이터
 };

@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Engine/DataTable.h"
 #include "Characters/Base/KNCharacterBase.h"
 #include "GAS/Attributes/KNAttributeSet.h"
@@ -106,7 +107,16 @@ void UKNAbilityDash::ActivateAbility(
             UAnimMontage* MontageToPlay = bIsDrawn ? Row->DrawnMontage : Row->SheathMontage;
             if (MontageToPlay)
             {
-                Owner->PlayAnimMontage(MontageToPlay);
+                UAbilityTask_PlayMontageAndWait* MontageTask =
+                    UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+                        this, NAME_None, MontageToPlay, 1.0f, NAME_None, false);
+
+                MontageTask->OnCompleted.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
+                MontageTask->OnBlendOut.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
+                MontageTask->OnInterrupted.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
+                MontageTask->OnCancelled.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
+                MontageTask->ReadyForActivation();
+                bIsDashMontageActive = true;
             }
         }
     }
@@ -127,6 +137,8 @@ void UKNAbilityDash::EndAbility(
     bool bReplicateEndAbility,
     bool bWasCancelled)
 {
+    bIsDashMontageActive = false;
+
     if (UWorld* World = GetWorld())
     {
         World->GetTimerManager().ClearTimer(InvincibleTimerHandle);
@@ -245,6 +257,20 @@ void UKNAbilityDash::OnInvincibleExpired()
             ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Invincible);
         }
     }
+
+    if (!bIsDashMontageActive)
+    {
+        EndAbility(
+            GetCurrentAbilitySpecHandle(),
+            GetCurrentActorInfo(),
+            GetCurrentActivationInfo(),
+            true, false);
+    }
+}
+
+void UKNAbilityDash::OnDashMontageFinished()
+{
+    bIsDashMontageActive = false;
 
     EndAbility(
         GetCurrentAbilitySpecHandle(),
