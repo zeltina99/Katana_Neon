@@ -204,7 +204,8 @@ bool UKNAbilityDash::ConsumeStamina()
     {
         // 캐싱된 비용(엑셀 데이터)만큼 차감
         Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Stamina, -CachedActionCost.DashStaminaCost);
-        return ASC->ApplyGameplayEffectSpecToSelf(*Spec).IsValid();
+        ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+        return true;
     }
     return false;
 }
