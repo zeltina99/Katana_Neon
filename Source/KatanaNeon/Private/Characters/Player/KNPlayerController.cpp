@@ -3,10 +3,13 @@
 
 #include "Characters/Player/KNPlayerController.h"
 #include "Characters/Base/KNCharacterBase.h"
+#include "Characters/Player/KNPlayerCharacter.h"
 #include "Data/Assets/KNInputDataConfig.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Tags/KNStatsTags.h"
+#include "GAS/Components/KNStatsComponent.h" 
 
+#include "UI/Main/KNMainHUDWidget.h"  
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Character.h"
@@ -24,6 +27,8 @@ void AKNPlayerController::OnPossess(APawn* aPawn)
             Subsystem->AddMappingContext(InputDataConfig->DefaultMappingContext, 0);
         }
     }
+
+    CreateAndInitHUD();
 }
 
 void AKNPlayerController::SetupInputComponent()
@@ -105,6 +110,33 @@ void AKNPlayerController::CancelAbilityByTag(const FGameplayTag& Tag)
     }
 }
 #pragma endregion 입력 콜백 헬퍼 함수 구현
+
+void AKNPlayerController::CreateAndInitHUD()
+{
+    if (!MainHUDWidgetClass) return;
+
+    // 이미 생성된 HUD가 있으면 중복 생성하지 않습니다.
+    if (MainHUDWidget) return;
+
+    MainHUDWidget = CreateWidget<UKNMainHUDWidget>(this, MainHUDWidgetClass);
+    if (!MainHUDWidget) return;
+
+    MainHUDWidget->AddToViewport();
+
+    // 빙의한 캐릭터에서 StatsComponent를 찾아 HUD에 연결합니다.
+    if (AKNPlayerCharacter* PlayerCharacter = Cast<AKNPlayerCharacter>(GetPawn()))
+    {
+        if (UKNStatsComponent* StatsComp =
+            PlayerCharacter->FindComponentByClass<UKNStatsComponent>())
+        {
+            // 델리게이트 구독
+            MainHUDWidget->InitHUD(StatsComp);
+
+            // 구독 직후 현재값으로 초기 화면을 채웁니다.
+            MainHUDWidget->SyncInitialValues(StatsComp);
+        }
+    }
+}
 
 #pragma region 입력 콜백 함수 구현
 void AKNPlayerController::Input_Move(const FInputActionValue& Value)

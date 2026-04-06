@@ -9,6 +9,7 @@
 
 #pragma region 전방 선언
 class UKNInputDataConfig;
+class UKNMainHUDWidget;
 struct FInputActionValue;
 #pragma endregion 전방 선언
 
@@ -52,6 +53,31 @@ private:
      */
     void CancelAbilityByTag(const FGameplayTag& Tag);
 #pragma endregion 내부 헬퍼 함수
+
+#pragma region HUD 관리
+public:
+    /** @brief 현재 화면에 표시 중인 메인 HUD 위젯을 반환합니다. */
+    UFUNCTION(BlueprintPure, Category = "KatanaNeon|UI|HUD")
+    UKNMainHUDWidget* GetMainHUD() const { return MainHUDWidget; }
+
+protected:
+    /**
+     * @brief 메인 HUD 위젯 클래스입니다.
+     * @details 에디터에서 WBP_MainHUD 를 할당합니다.
+     */
+    UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|UI|HUD")
+    TSubclassOf<UKNMainHUDWidget> MainHUDWidgetClass = nullptr;
+
+private:
+    /** @brief 생성된 메인 HUD 위젯 인스턴스 */
+    UPROPERTY(Transient)
+    TObjectPtr<UKNMainHUDWidget> MainHUDWidget = nullptr;
+
+    /**
+     * @brief HUD 위젯을 생성하고 StatsComponent와 연결합니다.
+     */
+    void CreateAndInitHUD();
+#pragma endregion HUD 관리
 
 #pragma region 입력 콜백 함수
 protected:
