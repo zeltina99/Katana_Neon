@@ -95,9 +95,20 @@ void UKNAbilityDash::ActivateAbility(
     LaunchDash(Owner);
 
     // ── 5. 대시 몽타주 재생 (옵션) ──
-    if (DashMontage)
+    if (DashMontageTable)
     {
-        Owner->PlayAnimMontage(DashMontage);
+        const FName RowName = GetDodgeDirectionRowName(Owner);
+        if (const FKNDashMontageRow* Row = DashMontageTable->FindRow<FKNDashMontageRow>(RowName, TEXT("DashMontage")))
+        {
+            const bool bIsDrawn = GetAbilitySystemComponentFromActorInfo()
+                ->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
+
+            UAnimMontage* MontageToPlay = bIsDrawn ? Row->DrawnMontage : Row->SheathMontage;
+            if (MontageToPlay)
+            {
+                Owner->PlayAnimMontage(MontageToPlay);
+            }
+        }
     }
 
     // ── 6. 무적 만료 타이머 ──
@@ -135,6 +146,31 @@ void UKNAbilityDash::EndAbility(
 #pragma endregion GAS 핵심 오버라이드 구현
 
 #pragma region 내부 헬퍼 함수 구현
+FName UKNAbilityDash::GetDodgeDirectionRowName(AKNCharacterBase* Character) const
+{
+    if (!Character) return TEXT("Forward");
+
+    FVector Input = Character->GetLastMovementInputVector();
+    if (Input.IsNearlyZero()) return TEXT("Back");
+
+    Input.Z = 0.f;
+    Input.Normalize();
+
+    const float F = FVector::DotProduct(Input, Character->GetActorForwardVector());
+    const float R = FVector::DotProduct(Input, Character->GetActorRightVector());
+
+    if (F >= 0.71f)  return TEXT("Forward");
+    if (F <= -0.71f)
+    {
+        if (R < -0.38f) return TEXT("BackLeft");
+        if (R > 0.38f) return TEXT("BackRight");
+        return TEXT("Back");
+    }
+    return (R < 0.f)
+        ? ((F > 0.f) ? TEXT("ForwardLeft") : TEXT("BackLeft"))
+        : ((F > 0.f) ? TEXT("ForwardRight") : TEXT("BackRight"));
+}
+
 bool UKNAbilityDash::LoadActionCostRow()
 {
     // 에러 해결 1: ActionCostDataTable 대신 FDataTableRowHandle 검사

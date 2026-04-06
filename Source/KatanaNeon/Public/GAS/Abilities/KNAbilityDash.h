@@ -104,9 +104,14 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Dash|DataTable")
     FDataTableRowHandle ActionCostRowHandle;
 
-    /** @brief 대시 시 재생할 애니메이션 몽타주 (에디터 할당) */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Dash|Montage")
-    TObjectPtr<UAnimMontage> DashMontage = nullptr;
+
+    /**
+     * @brief 방향 및 스탠스별 대시 몽타주 DataTable.
+     * @details Row Structure: FKNDashMontageRow
+     *          Row Key: Forward, ForwardLeft, ForwardRight, Left, Right, BackLeft, BackRight, Back
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Dash|DataTable")
+    TObjectPtr<UDataTable> DashMontageTable = nullptr;
 
     /**
      * @brief 대시 발사 속도 (cm/s).
@@ -161,6 +166,13 @@ private:
      * @param Character 발사할 AKNCharacterBase 객체
      */
     void LaunchDash(AKNCharacterBase* Character);
+
+    /**
+    * @brief 입력 방향과 캐릭터 전방 각도를 계산하여 DT_DashMontage 행 이름을 반환합니다.
+    * @param Character 방향을 계산할 대상 캐릭터
+    * @return Forward, ForwardLeft, ForwardRight, Left, Right, BackLeft, BackRight, Back 중 하나
+    */
+    FName GetDodgeDirectionRowName(AKNCharacterBase* Character) const;
 
     /**
      * @brief 무적 만료 타이머 콜백 — State.Combat.Invincible 태그 제거 후 EndAbility.

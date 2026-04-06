@@ -195,6 +195,27 @@ public:
 };
 #pragma endregion 점프 설정 테이블
 
+#pragma region 대시 몽타주 테이블
+/**
+ * @struct FKNDashMontageRow
+ * @brief 대시 방향별 몽타주를 스탠스에 따라 관리하는 행 구조체입니다.
+ */
+USTRUCT(BlueprintType)
+struct KATANANEON_API FKNDashMontageRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /** @brief 납도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Dash|Montage")
+    TObjectPtr<UAnimMontage> SheathMontage = nullptr;
+
+    /** @brief 발도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Dash|Montage")
+    TObjectPtr<UAnimMontage> DrawnMontage = nullptr;
+};
+#pragma endregion 대시 몽타주 테이블
+
 #pragma region 콤보 공격 테이블
 /**
  * @struct FKNComboAttackRow
@@ -628,3 +649,5 @@ public:
     float OverclockCost = 300.0f;
 };
 #pragma endregion 오버클럭 3단계 어빌리티 설정 테이블
+
+
