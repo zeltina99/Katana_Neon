@@ -60,6 +60,10 @@ public:
     UFUNCTION(BlueprintPure, Category = "KatanaNeon|UI|HUD")
     UKNMainHUDWidget* GetMainHUD() const { return MainHUDWidget; }
 
+    /**
+     * @brief HUD 위젯을 생성하고 StatsComponent와 연결합니다.
+     */
+    void CreateAndInitHUD();
 protected:
     /**
      * @brief 메인 HUD 위젯 클래스입니다.
@@ -68,15 +72,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|UI|HUD")
     TSubclassOf<UKNMainHUDWidget> MainHUDWidgetClass = nullptr;
 
-private:
     /** @brief 생성된 메인 HUD 위젯 인스턴스 */
     UPROPERTY(Transient)
     TObjectPtr<UKNMainHUDWidget> MainHUDWidget = nullptr;
-
-    /**
-     * @brief HUD 위젯을 생성하고 StatsComponent와 연결합니다.
-     */
-    void CreateAndInitHUD();
 #pragma endregion HUD 관리
 
 #pragma region 입력 콜백 함수

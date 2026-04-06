@@ -10,11 +10,8 @@ void UKNCircularGaugeWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if (GaugeMaterial && Image_Gauge)
-    {
-        DynamicGaugeMaterial = UMaterialInstanceDynamic::Create(GaugeMaterial, this);
-        Image_Gauge->SetBrushFromMaterial(DynamicGaugeMaterial);
-    }
+    // 초기 단계(0) 머터리얼로 시작합니다.
+    ApplyToMaterial(0.0f, 0);
 }
 #pragma endregion 위젯 생명주기 오버라이드 구현
 
@@ -26,17 +23,28 @@ void UKNCircularGaugeWidget::SetOverclockPoint(float InPoint)
 
     CalculateStageAndPercent(InPoint, NewStageIndex, NewPercent);
 
-    // 단계와 퍼센트가 모두 동일하면 머터리얼 호출을 차단합니다.
     if (NewStageIndex == CachedStageIndex &&
         FMath::IsNearlyEqual(CachedPercent, NewPercent))
     {
         return;
     }
 
+    // 단계가 바뀌면 머터리얼 인스턴스를 교체합니다.
+    if (NewStageIndex != CachedStageIndex)
+    {
+        ApplyToMaterial(NewPercent, NewStageIndex);
+    }
+    else
+    {
+        // 같은 단계면 Progress만 업데이트합니다.
+        if (DynamicGaugeMaterial)
+        {
+            DynamicGaugeMaterial->SetScalarParameterValue(FillPercentParamName, NewPercent);
+        }
+    }
+
     CachedStageIndex = NewStageIndex;
     CachedPercent = NewPercent;
-
-    ApplyToMaterial(CachedPercent, CachedStageIndex);
 }
 #pragma endregion 외부 제어 인터페이스 구현
 
@@ -46,7 +54,7 @@ void UKNCircularGaugeWidget::CalculateStageAndPercent(
     int32& OutStageIndex,
     float& OutPercent) const
 {
-    if (Stages.IsEmpty())
+    if (StageThresholds.IsEmpty())
     {
         OutStageIndex = 0;
         OutPercent = 0.0f;
@@ -55,15 +63,14 @@ void UKNCircularGaugeWidget::CalculateStageAndPercent(
 
     float PrevMax = 0.0f;
 
-    for (int32 i = 0; i < Stages.Num(); ++i)
+    for (int32 i = 0; i < StageThresholds.Num(); ++i)
     {
-        const float StageMax = Stages[i].MaxPoint;
+        const float StageMax = StageThresholds[i];
         const float StageRange = StageMax - PrevMax;
 
-        if (InPoint <= StageMax || i == Stages.Num() - 1)
+        if (InPoint <= StageMax || i == StageThresholds.Num() - 1)
         {
             OutStageIndex = i;
-            // 단계 내 포인트 비율을 0.0~1.0으로 정규화합니다.
             OutPercent = (StageRange > 0.0f)
                 ? FMath::Clamp((InPoint - PrevMax) / StageRange, 0.0f, 1.0f)
                 : 0.0f;
@@ -73,16 +80,22 @@ void UKNCircularGaugeWidget::CalculateStageAndPercent(
         PrevMax = StageMax;
     }
 
-    OutStageIndex = Stages.Num() - 1;
+    OutStageIndex = StageThresholds.Num() - 1;
     OutPercent = 1.0f;
 }
 
 void UKNCircularGaugeWidget::ApplyToMaterial(float InPercent, int32 InStageIndex)
 {
-    if (!DynamicGaugeMaterial) return;
-    if (!Stages.IsValidIndex(InStageIndex)) return;
+    if (!Image_Gauge) return;
+    if (!StageMaterials.IsValidIndex(InStageIndex)) return;
+    if (!StageMaterials[InStageIndex]) return;
+
+    // 단계에 맞는 머터리얼로 새 동적 인스턴스를 생성합니다.
+    DynamicGaugeMaterial = UMaterialInstanceDynamic::Create(
+        StageMaterials[InStageIndex], this);
+
+    Image_Gauge->SetBrushFromMaterial(DynamicGaugeMaterial);
 
     DynamicGaugeMaterial->SetScalarParameterValue(FillPercentParamName, InPercent);
-    DynamicGaugeMaterial->SetVectorParameterValue(FillColorParamName, Stages[InStageIndex].StageColor);
 }
 #pragma endregion 내부 헬퍼 함수 구현

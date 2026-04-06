@@ -99,6 +99,10 @@ public:
     /** @brief 스킬 아이콘 활성화/비활성화를 위해 UI가 구독할 레벨 변경 이벤트 디스패처 */
     UPROPERTY(BlueprintAssignable, Category = "KatanaNeon|Stats|Event")
     FOnKNOverclockLevelChanged OnOverclockLevelChanged;
+
+    /** @brief StatsComponent 초기화 완료 시 HUD가 구독할 델리게이트 */
+    UPROPERTY(BlueprintAssignable, Category = "KatanaNeon|Stats|Event")
+    FOnKNHealthChanged OnStatComponentInitialized;
 #pragma endregion 외부에 노출할 UI 동기화 이벤트
 
 #pragma region 핵심 조작 및 초기화 인터페이스

@@ -74,30 +74,20 @@ public:
 #pragma region 에디터 설정 데이터
 protected:
     /**
-     * @brief 원형 게이지에 적용할 머터리얼 인스턴스입니다.
+     * @brief 단계별 머터리얼 인스턴스 배열입니다.
+     * @details [0]=MI_UI_RadialGauge_Lv1, [1]=MI_UI_RadialGauge_Lv2, [2]=MI_UI_RadialGauge_Lv3
+     *          단계가 바뀔 때 해당 인스턴스로 교체됩니다.
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
-    TObjectPtr<UMaterialInterface> GaugeMaterial = nullptr;
+    TArray<TObjectPtr<UMaterialInterface>> StageMaterials;
 
-    /**
-     * @brief 머터리얼의 채움 비율 스칼라 파라미터 이름입니다.
-     */
+    /** @brief 머터리얼의 채움 비율 스칼라 파라미터 이름입니다. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
     FName FillPercentParamName = FName("Progress");
 
-    /**
-     * @brief 머터리얼의 채움 색상 벡터 파라미터 이름입니다.
-     */
+    /** @brief 단계별 임계값 배열입니다. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
-    FName FillColorParamName = FName("Filled pip color");
-
-    /**
-     * @brief 단계별 임계값과 색상 배열입니다.
-     * @details 에디터에서 순서대로 입력합니다.
-     *          예: [0] MaxPoint=100 노란색, [1] MaxPoint=200 파란색, [2] MaxPoint=300 빨간색
-     */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
-    TArray<FKNGaugeStageData> Stages;
+    TArray<float> StageThresholds = { 100.0f, 200.0f, 300.0f };
 #pragma endregion 에디터 설정 데이터
 
 #pragma region UMG 바인딩

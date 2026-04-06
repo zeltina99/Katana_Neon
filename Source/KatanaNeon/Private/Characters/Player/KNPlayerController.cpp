@@ -129,11 +129,7 @@ void AKNPlayerController::CreateAndInitHUD()
         if (UKNStatsComponent* StatsComp =
             PlayerCharacter->FindComponentByClass<UKNStatsComponent>())
         {
-            // 델리게이트 구독
             MainHUDWidget->InitHUD(StatsComp);
-
-            // 구독 직후 현재값으로 초기 화면을 채웁니다.
-            MainHUDWidget->SyncInitialValues(StatsComp);
         }
     }
 }

@@ -103,6 +103,11 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
 
     // ── 스태미나 자연 회복 타이머 시작 (ApplyBaseStats 완료 후 시점 보장) ──
     StartStaminaRegen();
+
+    OnHealthChanged.Broadcast(AttributeSet->GetHealth(), AttributeSet->GetMaxHealth());
+    OnStaminaChanged.Broadcast(AttributeSet->GetStamina(), AttributeSet->GetMaxStamina());
+    OnChronosChanged.Broadcast(AttributeSet->GetChronos(), AttributeSet->GetMaxChronos());
+    OnOverclockPointChanged.Broadcast(AttributeSet->GetOverclockPoint(), OverclockSetting.MaxOverclockPoint);
 }
 #pragma endregion 기본 생성자 및 초기화 구현
 
