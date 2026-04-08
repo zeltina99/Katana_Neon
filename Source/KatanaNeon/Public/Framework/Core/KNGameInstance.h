@@ -36,9 +36,13 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Data|Player")
     TObjectPtr<UDataTable> JumpSettingTable = nullptr;
 
-    /** @brief 플레이어 콤보 공격 마스터 테이블 */
+    /** @brief 발도 상태 콤보 공격 마스터 테이블 */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Data|Player")
-    TObjectPtr<UDataTable> ComboAttackTable = nullptr;
+    TObjectPtr<UDataTable> DrawnComboAttackTable = nullptr;
+
+    /** @brief 납도 상태 콤보 공격 마스터 테이블 */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Data|Player")
+    TObjectPtr<UDataTable> SheathComboAttackTable = nullptr;
 
     // ── 시스템(오버클럭, 크로노스) 데이터 ──
     /** @brief 오버클럭 기본 설정 및 임계값 테이블 */
@@ -81,7 +85,8 @@ public:
     UDataTable* GetPlayerBaseStatTable() const { return PlayerBaseStatTable; }
     UDataTable* GetActionCostTable() const { return ActionCostTable; }
     UDataTable* GetJumpSettingTable() const { return JumpSettingTable; }
-    UDataTable* GetComboAttackTable() const { return ComboAttackTable; }
+    UDataTable* GetDrawnComboAttackTable() const { return DrawnComboAttackTable; }
+    UDataTable* GetSheathComboAttackTable() const { return SheathComboAttackTable; }
     UDataTable* GetOverclockSettingTable() const { return OverclockSettingTable; }
     UDataTable* GetOverclockLv1Table() const { return OverclockLv1Table; }
     UDataTable* GetOverclockLv2Table() const { return OverclockLv2Table; }

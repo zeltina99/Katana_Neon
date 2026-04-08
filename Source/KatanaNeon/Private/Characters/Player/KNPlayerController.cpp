@@ -8,6 +8,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Tags/KNStatsTags.h"
 #include "GAS/Components/KNStatsComponent.h" 
+#include "GAS/Abilities/KNAbilityComboAttack.h"
 
 #include "UI/Main/KNMainHUDWidget.h"  
 #include "EnhancedInputComponent.h"
@@ -204,11 +205,44 @@ void AKNPlayerController::Input_Attack(const FInputActionValue&)
     TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
 }
 
-void AKNPlayerController::Input_HeavyAttack(const FInputActionValue&)
+void AKNPlayerController::Input_HeavyAttack(const FInputActionValue& Value)
 {
-    // TODO: 강공격은 현재 콤보 공격 파생 로직으로 처리해야 하므로,
-    // 나중에 KNAbilityComboAttack::RequestHeavyAttack()을 호출하는 로직이 필요합니다.
-    // 지금은 예비용으로 비워둡니다.
+    AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn());
+    if (!ControlledCharacter) return;
+
+    UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent();
+    if (!ASC) return;
+
+    // 현재 활성화된 ComboAttack 인스턴스 탐색
+    TArray<FGameplayAbilitySpec*> MatchingSpecs;
+    ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+        FGameplayTagContainer(KatanaNeon::Ability::Combat::Attack),
+        MatchingSpecs, false);
+
+    for (FGameplayAbilitySpec* Spec : MatchingSpecs)
+    {
+        if (!Spec) continue;
+
+        for (UGameplayAbility* Instance : Spec->GetAbilityInstances())
+        {
+            UKNAbilityComboAttack* ComboAbility = Cast<UKNAbilityComboAttack>(Instance);
+            if (!ComboAbility) continue;
+
+            if (Spec->IsActive())
+            {
+                // 콤보 진행 중 → 다음 단계 Heavy 예약 후 리턴
+                ComboAbility->RequestHeavyAttack();
+                return;
+            }
+            else
+            {
+                // 콤보 비활성 → 첫 타 Heavy 예약 후 활성화
+                ComboAbility->PrepareHeavyStart();
+            }
+        }
+    }
+
+    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
 }
 
 void AKNPlayerController::Input_Dash(const FInputActionValue&)

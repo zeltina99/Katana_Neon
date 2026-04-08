@@ -43,7 +43,8 @@ public:
     const FKNBaseStatRow* GetPlayerBaseStat(const FName& RowName = TEXT("Default")) const;
     const FKNActionCostRow* GetActionCost(const FName& RowName = TEXT("Default")) const;
     const FKNJumpSettingRow* GetJumpSetting(const FName& RowName = TEXT("Default")) const;
-    const FKNComboAttackRow* GetComboAttackData(const FName& RowName) const;
+    const FKNComboAttackRow* GetDrawnComboAttackData(const FName& RowName) const;
+    const FKNComboAttackRow* GetSheathComboAttackData(const FName& RowName) const;
 
     // ── 시스템(오버클럭, 크로노스) 데이터 조회 ──
     const FKNOverclockSettingRow* GetOverclockSetting(const FName& RowName = TEXT("Default")) const;

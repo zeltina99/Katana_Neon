@@ -38,10 +38,20 @@ const FKNJumpSettingRow* UKNDataManagerSubsystem::GetJumpSetting(const FName& Ro
     return (GI && GI->GetJumpSettingTable()) ? GI->GetJumpSettingTable()->FindRow<FKNJumpSettingRow>(RowName, TEXT("GetJumpSetting")) : nullptr;
 }
 
-const FKNComboAttackRow* UKNDataManagerSubsystem::GetComboAttackData(const FName& RowName) const
+const FKNComboAttackRow* UKNDataManagerSubsystem::GetDrawnComboAttackData(const FName& RowName) const
 {
     UKNGameInstance* GI = Cast<UKNGameInstance>(GetGameInstance());
-    return (GI && GI->GetComboAttackTable()) ? GI->GetComboAttackTable()->FindRow<FKNComboAttackRow>(RowName, TEXT("GetComboAttackData")) : nullptr;
+    return (GI && GI->GetDrawnComboAttackTable())
+        ? GI->GetDrawnComboAttackTable()->FindRow<FKNComboAttackRow>(RowName, TEXT("GetDrawnComboAttackData"))
+        : nullptr;
+}
+
+const FKNComboAttackRow* UKNDataManagerSubsystem::GetSheathComboAttackData(const FName& RowName) const
+{
+    UKNGameInstance* GI = Cast<UKNGameInstance>(GetGameInstance());
+    return (GI && GI->GetSheathComboAttackTable())
+        ? GI->GetSheathComboAttackTable()->FindRow<FKNComboAttackRow>(RowName, TEXT("GetSheathComboAttackData"))
+        : nullptr;
 }
 
 const FKNOverclockSettingRow* UKNDataManagerSubsystem::GetOverclockSetting(const FName& RowName) const

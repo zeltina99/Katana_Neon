@@ -1,0 +1,11 @@
+---,RequiredStance,PlayRate,ComboStep,AttackType,StaminaCost,ComboWindowTime,DamageMultiplier,OverclockGain,MontageSectionName,HitboxStartNormTime,HitboxEndNormTime
+LightAttack_1,Sheathed,1.1,1,0,8.0,0.7,0.8,8.0,SLight_1,0.18,0.45
+LightAttack_2,Sheathed,1.15,2,0,8.0,0.7,0.9,8.0,SLight_2,0.18,0.45
+LightAttack_3,Sheathed,1.2,3,0,10.0,0.6,1.0,10.0,SLight_3,0.20,0.48
+LightAttack_4,Sheathed,1.2,4,0,10.0,0.6,1.1,10.0,SLight_4,0.20,0.48
+LightAttack_5,Sheathed,1.1,5,0,12.0,0.0,1.5,15.0,SLight_5,0.22,0.52
+HeavyAttack_1,Sheathed,1.0,1,1,15.0,0.0,1.8,12.0,SHeavy_1,0.28,0.55
+HeavyAttack_2,Sheathed,1.0,2,1,15.0,0.5,1.6,12.0,SHeavy_2,0.26,0.53
+HeavyAttack_3,Sheathed,0.95,3,1,15.0,0.5,1.8,13.0,SHeavy_3,0.26,0.53
+HeavyAttack_4,Sheathed,0.95,4,1,18.0,0.4,2.0,15.0,SHeavy_4,0.28,0.55
+HeavyAttack_5,Sheathed,0.9,5,1,20.0,0.0,3.0,20.0,SHeavy_5,0.28,0.58

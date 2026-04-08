@@ -8,7 +8,6 @@
 #include "KNAbilityComboAttack.generated.h"
 
 #pragma region 전방 선언
-class UAnimMontage;
 class UKNStatsComponent;
 class UAbilityTask_PlayMontageAndWait;
 #pragma endregion 전방 선언
@@ -125,59 +124,56 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Ability|Combo")
     void RequestHeavyAttack();
+
+    /**
+     * @brief 콤보가 비활성 상태일 때 첫 타를 Heavy로 예약합니다.
+     * @details Input_HeavyAttack에서 TryActivate 직전에 호출됩니다.
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Ability|Combo")
+    void PrepareHeavyStart();
 #pragma endregion 블루프린트 / AnimNotify 연동 인터페이스
 
 #pragma region 에디터 설정 데이터
 protected:
     /**
-     * @brief 약공격 몽타주 배열 (인덱스 0 = 1단계 … 4 = 5단계).
-     * @details LightAttack_N 행의 ComboStep에 대응하는 몽타주를 에디터에서 할당합니다.
-     */
-    UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|Montage")
-    TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
-
-    /**
-     * @brief 강공격 몽타주 배열 (인덱스 0 = 1단계 … 4 = 5단계).
-     * @details HeavyAttack_N 행의 ComboStep에 대응하는 몽타주를 에디터에서 할당합니다.
-     */
-    UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|Montage")
-    TArray<TObjectPtr<UAnimMontage>> HeavyAttackMontages;
-
-    /**
-     * @brief DT_PlayerComboAttack 에셋을 연결하는 DataTable 행 핸들.
-     * @details 에디터에서 DataTable 에셋과 행 이름을 직접 선택합니다.
-     *          (행 이름은 런타임에 MakeComboRowName()으로 동적 생성됩니다.)
+     * @brief 발도 상태 콤보 DataTable.
+     * @details 행 구조: FKNComboAttackRow / 행 키: LightAttack_1~5, HeavyAttack_1~5
+     *          각 행의 ComboMontage 필드에 발도 전용 몽타주를 직접 할당합니다.
      */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|DataTable")
-    TObjectPtr<UDataTable> ComboDataTable = nullptr;
+    TObjectPtr<UDataTable> DrawnComboDataTable = nullptr;
+
+    /**
+     * @brief 납도 상태 콤보 DataTable.
+     * @details 행 구조: FKNComboAttackRow / 행 키: LightAttack_1~5, HeavyAttack_1~5
+     *          각 행의 ComboMontage 필드에 납도 전용 몽타주를 직접 할당합니다.
+     */
+    UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|DataTable")
+    TObjectPtr<UDataTable> SheathComboDataTable = nullptr;
 
     /**
      * @brief 히트박스 판정 시 적용할 데미지 Instant GE 클래스.
-     * @details KNInstantModifier 기반. SetByCaller(Health, -데미지)로 적용됩니다.
+     * @details SetByCaller(Health, -최종데미지)로 적용됩니다.
      */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|GAS")
     TSubclassOf<UGameplayEffect> DamageGEClass = nullptr;
 
     /**
      * @brief 기준 공격력. DataTable의 DamageMultiplier와 곱해져 최종 데미지가 됩니다.
-     * @details 기본값 10.0f. 기획자가 에디터에서 조정합니다.
      */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|Config",
         meta = (ClampMin = 1.0f))
     float BaseAttackDamage = 10.0f;
 
-    /**
-     * @brief 스태미나 소모 Instant GE 클래스.
-     * @details SetByCaller(Stamina, -StaminaCost)로 즉시 소모합니다.
-     */
+    /** @brief 스태미나 소모 Instant GE 클래스 */
     UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Ability|Combo|GAS")
     TSubclassOf<UGameplayEffect> StaminaCostGEClass = nullptr;
 
-    /** @brief 오버클럭 1단계(전술 강화) 수치를 엑셀에서 읽어오기 위한 데이터 행 핸들 */
+    /** @brief 오버클럭 1단계 수치 행 핸들 (데미지 배율 조회용) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Combo|Overclock")
     FDataTableRowHandle OverclockLv1RowHandle;
 
-    /** @brief 오버클럭 3단계(시간 정지) 수치를 엑셀에서 읽어오기 위한 데이터 행 핸들 */
+    /** @brief 오버클럭 3단계 수치 행 핸들 (시간 정지 데미지 배율 조회용) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|Combo|Overclock")
     FDataTableRowHandle OverclockLv3RowHandle;
 #pragma endregion 에디터 설정 데이터
@@ -196,6 +192,13 @@ private:
     /** @brief 다음 단계가 강공격으로 예약되었는지 여부 */
     bool bNextIsHeavy = false;
 
+    /**
+     * @brief 이번 콤보가 발도 스탠스로 시작되었는지 여부.
+     * @details ActivateAbility 첫 진입 시 WeaponDrawn 태그로 확정되며,
+     *          콤보 종료(EndAbility)까지 변경되지 않습니다.
+     */
+    bool bIsDrawnCombo = false;
+
     /** @brief 콤보 윈도우 만료 타이머 핸들 */
     FTimerHandle ComboWindowTimerHandle;
 
@@ -205,6 +208,20 @@ private:
 
 #pragma region 내부 헬퍼 함수
 private:
+    /**
+     * @brief 현재 스탠스에 해당하는 DataTable을 반환합니다.
+     * @param bDrawn 발도 여부 (true = DrawnComboDataTable, false = SheathComboDataTable)
+     * @return 해당 DataTable 포인터, 미할당 시 nullptr
+     */
+    UDataTable* GetComboDataTable(bool bDrawn) const;
+
+    /**
+     * @brief 현재 ASC의 WeaponDrawn 태그 유무로 발도 상태를 판별합니다.
+     * @param ActorInfo 소유 액터 정보
+     * @return 발도 상태이면 true
+     */
+    bool IsWeaponDrawn(const FGameplayAbilityActorInfo* ActorInfo) const;
+
     /**
      * @brief 단계·타입에서 DataTable 행 이름을 생성합니다.
      * @param Step       콤보 단계 (1 ~ 5)
@@ -222,24 +239,21 @@ private:
 
     /**
      * @brief 현재 캐시된 StaminaCost만큼 스태미나를 GE로 즉시 소모합니다.
-     * @return 소모 성공 여부 (스태미나 부족 시 false)
+     * @return 소모 성공 여부
      */
     bool ConsumeStamina();
 
     /**
-     * @brief 현재 단계의 몽타주를 PlayMontageAndWait Task로 재생합니다.
+     * @brief CachedComboRow.ComboMontage를 PlayMontageAndWait Task로 재생합니다.
+     *        PlayRate는 DT의 PlayRate × AttributeSet.AttackSpeed 로 계산합니다.
      * @return Task 생성 성공 여부
      */
     bool PlayComboMontage();
 
-    /**
-     * @brief 다음 단계로 진행하거나, 최종 단계면 어빌리티를 종료합니다.
-     */
+    /** @brief 다음 단계로 진행하거나, 최종 단계면 어빌리티를 종료합니다. */
     void AdvanceCombo();
 
-    /**
-     * @brief 콤보 윈도우 만료 콜백 — 타이머로 바인딩됩니다.
-     */
+    /** @brief 콤보 윈도우 만료 콜백 */
     UFUNCTION()
     void OnComboWindowExpired();
 #pragma endregion 내부 헬퍼 함수

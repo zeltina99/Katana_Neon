@@ -17,6 +17,9 @@ UKNAbilityJump::UKNAbilityJump()
     TempTags.AddTag(KatanaNeon::Ability::Movement::Jump);
     SetAssetTags(TempTags);
 
+    // 대시 중 점프 차단
+    ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::Dashing);
+
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
