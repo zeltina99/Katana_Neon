@@ -223,7 +223,31 @@ void AKNPlayerController::Input_Parry(const FInputActionValue&)
 
 void AKNPlayerController::Input_Chronos(const FInputActionValue&)
 {
-    TryActivateAbilityByTag(KatanaNeon::Ability::Skill::Chronos);
+    if (AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn()))
+    {
+        if (UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent())
+        {
+            TArray<FGameplayAbilitySpec*> MatchingSpecs;
+            ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+                FGameplayTagContainer(KatanaNeon::Ability::Combat::Chronos),
+                MatchingSpecs,
+                /*bOnlyAbilitiesThatSatisfyTagRequirements=*/false);
+
+            bool bIsActive = false;
+            for (FGameplayAbilitySpec* Spec : MatchingSpecs)
+            {
+                if (Spec && Spec->IsActive())
+                {
+                    bIsActive = true;
+                    break;
+                }
+            }
+
+            bIsActive
+                ? CancelAbilityByTag(KatanaNeon::Ability::Combat::Chronos)
+                : TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Chronos);
+        }
+    }
 }
 
 void AKNPlayerController::Input_ToggleStance(const FInputActionValue& Value)

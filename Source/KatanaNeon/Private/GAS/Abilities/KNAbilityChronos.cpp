@@ -58,13 +58,6 @@ void UKNAbilityChronos::ActivateAbility(
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    // ── 토글 OFF 로직 ──
-    if (bIsChronosActive)
-    {
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-        return;
-    }
-
     // ── 토글 ON 로직 ──
     if (!LoadChronosSetting())
     {

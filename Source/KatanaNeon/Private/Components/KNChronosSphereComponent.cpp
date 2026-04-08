@@ -10,7 +10,9 @@
 #pragma region 기본 생성자 및 초기화 구현
 UKNChronosSphereComponent::UKNChronosSphereComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false; // 최적화: 틱(Tick) 완전 차단
+    //PrimaryComponentTick.bCanEverTick = false; // 최적화: 틱(Tick) 완전 차단
+    PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.bStartWithTickEnabled = false;
 
     SetCollisionEnabled(ECollisionEnabled::NoCollision);
     SetCollisionObjectType(ECC_WorldDynamic);
@@ -28,6 +30,46 @@ void UKNChronosSphereComponent::BeginPlay()
 
     OnComponentBeginOverlap.AddDynamic(this, &UKNChronosSphereComponent::OnSphereBeginOverlap);
     OnComponentEndOverlap.AddDynamic(this, &UKNChronosSphereComponent::OnSphereEndOverlap);
+}
+
+void UKNChronosSphereComponent::TickComponent(
+    float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+#if !UE_BUILD_SHIPPING
+    if (!bChronosActive) return;
+
+    const FVector Center = GetComponentLocation();
+    const float   Radius = GetScaledSphereRadius();
+    const UWorld* World = GetWorld();
+    if (!World) return;
+
+    // 구체 외곽선 — 하늘색
+    DrawDebugSphere(
+        World,
+        Center,
+        Radius,
+        /*Segments=*/32,
+        FColor::Cyan,
+        /*bPersistentLines=*/false,
+        /*LifeTime=*/-1.f,   // 매 프레임 갱신이므로 -1(한 프레임)
+        /*DepthPriority=*/0,
+        /*Thickness=*/2.f);
+
+    // 현재 슬로우 중인 액터 수 화면 출력
+    const FString DebugText = FString::Printf(
+        TEXT("Chronos Active | R: %.0f | Slowed: %d"),
+        Radius, SlowedActors.Num());
+
+    DrawDebugString(
+        World,
+        Center + FVector(0.f, 0.f, Radius + 30.f),
+        DebugText,
+        /*TestBaseActor=*/nullptr,
+        FColor::Cyan,
+        /*Duration=*/0.f);
+#endif
 }
 #pragma endregion 기본 생성자 및 초기화 구현
 
@@ -65,11 +107,23 @@ void UKNChronosSphereComponent::ActivateSphere(
             SlowedActors.Add(Actor);
         }
     }
+
+    bChronosActive = true;
+
+    // 디버그 드로우용 틱 활성화
+#if !UE_BUILD_SHIPPING
+    SetComponentTickEnabled(true);
+#endif
 }
 
 void UKNChronosSphereComponent::DeactivateSphere()
 {
     if (!bChronosActive) return;
+
+    // 디버그 드로우용 틱 비활성화
+#if !UE_BUILD_SHIPPING
+    SetComponentTickEnabled(false);
+#endif
 
     bChronosActive = false;
     SetCollisionEnabled(ECollisionEnabled::NoCollision);

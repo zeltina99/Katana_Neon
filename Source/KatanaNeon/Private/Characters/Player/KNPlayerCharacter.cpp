@@ -9,6 +9,7 @@
 #include "GAS/Components/KNStatsComponent.h"
 #include "Components/StaticMeshComponent.h" 
 #include "GAS/Tags/KNStatsTags.h"
+#include "Components/KNChronosSphereComponent.h"
 
 #pragma region 기본 생성자 및 초기화 구현
 AKNPlayerCharacter::AKNPlayerCharacter()
@@ -44,6 +45,9 @@ AKNPlayerCharacter::AKNPlayerCharacter()
     SheathMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SheathMesh"));
     SheathMesh->SetupAttachment(GetMesh(), TEXT("SheathSocket_L"));
     SheathMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    ChronosSphereComponent = CreateDefaultSubobject<UKNChronosSphereComponent>(TEXT("ChronosSphereComponent"));
+    ChronosSphereComponent->SetupAttachment(GetRootComponent());
 }
 
 void AKNPlayerCharacter::BeginPlay()

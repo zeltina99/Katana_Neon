@@ -41,6 +41,13 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    /**
+     * @brief 크로노스 활성화 중에만 틱이 켜집니다.
+     *        디버그 드로우 전용이므로 Shipping 빌드에서는 완전 제거됩니다.
+     */
+    virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+        FActorComponentTickFunction* ThisTickFunction) override;
 #pragma endregion 기본 생성자 및 초기화
 
 #pragma region 외부 제어 인터페이스

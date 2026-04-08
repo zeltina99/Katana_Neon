@@ -10,6 +10,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UKNStatsComponent;
+class UKNChronosSphereComponent;
 #pragma endregion 전방 선언
 
 /**
@@ -123,4 +124,14 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|GAS", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UKNStatsComponent> StatsComponent = nullptr;
 #pragma endregion 컴포넌트
+
+#pragma region 크로노스 구체 컴포넌트
+protected:
+    /**
+     * @brief 플레이어 주변 구체 범위 내 적/발사체의 시간을 감속시키는 컴포넌트입니다.
+     * @details KNAbilityChronos가 ActivateSphere/DeactivateSphere를 호출하여 제어합니다.
+     */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|Components")
+    TObjectPtr<UKNChronosSphereComponent> ChronosSphereComponent = nullptr;
+#pragma endregion 크로노스 구체 컴포넌트
 };
