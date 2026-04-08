@@ -37,9 +37,10 @@ struct FKNGaugeStageData
 /**
  * @file    KNCircularGaugeWidget.h
  * @class   UKNCircularGaugeWidget
- * @brief   오버클럭 포인트(0~300)를 받아 단계별 색상과 회전 비율을 표현하는 원형 게이지 위젯입니다.
- * @details 0~100 노란색 한 바퀴, 100~200 파란색 한 바퀴, 200~300 빨간색 한 바퀴.
- *          단계 정의는 에디터의 Stages 배열에서 데이터 드리븐으로 관리합니다.
+ * @brief   단일 원형 링 게이지 위젯입니다.
+ * @details SRP 원칙에 따라 "0~MaxPoint 범위의 포인트를 받아 링을 채운다"는
+ *          단 하나의 책임만 가집니다.
+ *          색상과 머터리얼은 에디터에서 할당하며 C++은 Progress 파라미터만 제어합니다.
  */
 UCLASS()
 class KATANANEON_API UKNCircularGaugeWidget : public UKNUserWidgetBase
@@ -57,15 +58,15 @@ protected:
 #pragma region 외부 제어 인터페이스
 public:
     /**
-     * @brief 오버클럭 포인트 전체 값을 받아 단계와 퍼센트를 자동으로 계산합니다.
-     * @param InPoint 현재 오버클럭 포인트 (0.0 ~ MaxPoint 합산)
+     * @brief 현재 포인트를 받아 Progress 비율로 변환하여 머터리얼에 적용합니다.
+     * @param InPoint    현재 포인트 (0.0 ~ MaxPoint)
      */
     UFUNCTION(BlueprintCallable, Category = "KatanaNeon|UI|CircularGauge")
-    void SetOverclockPoint(float InPoint);
+    void SetPoint(float InPoint);
 
     /**
-     * @brief 현재 게이지의 채움 비율을 반환합니다.
-     * @return 0.0 ~ 1.0 사이의 현재 단계 내 퍼센트 값
+     * @brief 현재 채움 비율을 반환합니다.
+     * @return 0.0 ~ 1.0
      */
     UFUNCTION(BlueprintPure, Category = "KatanaNeon|UI|CircularGauge")
     float GetPercent() const { return CachedPercent; }
@@ -74,26 +75,31 @@ public:
 #pragma region 에디터 설정 데이터
 protected:
     /**
-     * @brief 단계별 머터리얼 인스턴스 배열입니다.
-     * @details [0]=MI_UI_RadialGauge_Lv1, [1]=MI_UI_RadialGauge_Lv2, [2]=MI_UI_RadialGauge_Lv3
-     *          단계가 바뀔 때 해당 인스턴스로 교체됩니다.
+     * @brief 이 링에 적용할 머터리얼 인스턴스입니다.
+     * @details 에디터에서 MI_UI_RadialGauge_Lv1/Lv2/Lv3 중 하나를 할당합니다.
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
-    TArray<TObjectPtr<UMaterialInterface>> StageMaterials;
+    TObjectPtr<UMaterialInterface> GaugeMaterial = nullptr;
 
-    /** @brief 머터리얼의 채움 비율 스칼라 파라미터 이름입니다. */
+    /**
+     * @brief 머터리얼의 채움 비율 스칼라 파라미터 이름입니다.
+     * @details 머터리얼 파라미터 이름과 반드시 일치해야 합니다.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
     FName FillPercentParamName = FName("Progress");
 
-    /** @brief 단계별 임계값 배열입니다. */
+    /**
+     * @brief 이 링이 담당하는 최대 포인트입니다.
+     * @details KNOverclockGroupWidget에서 구간을 잘라서 전달하므로 기본값은 100입니다.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|UI|CircularGauge|Config")
-    TArray<float> StageThresholds = { 100.0f, 200.0f, 300.0f };
+    float MaxPoint = 100.0f;
 #pragma endregion 에디터 설정 데이터
 
 #pragma region UMG 바인딩
 protected:
     /**
-     * @brief 원형 게이지를 표현하는 단일 이미지 위젯입니다.
+     * @brief 원형 게이지 이미지 위젯입니다.
      * @details 블루프린트 위젯 이름이 반드시 Image_Gauge 이어야 합니다.
      */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -102,32 +108,12 @@ protected:
 
 #pragma region 런타임 상태
 private:
-    /** @brief 게이지 이미지에 적용된 동적 머터리얼 인스턴스 */
+    /** @brief 동적 머터리얼 인스턴스 */
     UPROPERTY(Transient)
     TObjectPtr<UMaterialInstanceDynamic> DynamicGaugeMaterial = nullptr;
 
-    /** @brief 현재 단계 내 퍼센트 캐시 */
+    /** @brief 현재 채움 비율 캐시 */
     float CachedPercent = 0.0f;
-
-    /** @brief 현재 활성 단계 인덱스 캐시 */
-    int32 CachedStageIndex = 0;
 #pragma endregion 런타임 상태
 
-#pragma region 내부 헬퍼 함수
-private:
-    /**
-     * @brief 총 포인트값으로 현재 단계 인덱스와 단계 내 퍼센트를 계산합니다.
-     * @param InPoint   총 오버클럭 포인트
-     * @param OutStageIndex 계산된 단계 인덱스
-     * @param OutPercent    계산된 단계 내 퍼센트 (0.0~1.0)
-     */
-    void CalculateStageAndPercent(float InPoint, int32& OutStageIndex, float& OutPercent) const;
-
-    /**
-     * @brief 머터리얼에 퍼센트와 색상을 적용합니다.
-     * @param InPercent    적용할 퍼센트
-     * @param InStageIndex 적용할 단계 인덱스
-     */
-    void ApplyToMaterial(float InPercent, int32 InStageIndex);
-#pragma endregion 내부 헬퍼 함수
 };
