@@ -134,4 +134,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KatanaNeon|Components")
     TObjectPtr<UKNChronosSphereComponent> ChronosSphereComponent = nullptr;
 #pragma endregion 크로노스 구체 컴포넌트
+
+#pragma region 무기 시스템
+public:
+    /** @brief 납도 콤보 노티파이에서 칼 메시 위치를 직접 제어하기 위한 Getter입니다. */
+    FORCEINLINE UStaticMeshComponent* GetKatanaMesh() const { return KatanaMesh; }
+#pragma endregion 무기 시스템
 };

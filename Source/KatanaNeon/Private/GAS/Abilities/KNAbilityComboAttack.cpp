@@ -20,6 +20,9 @@ UKNAbilityComboAttack::UKNAbilityComboAttack()
 
     //사망
 
+    // 콤보 윈도우 중 재입력 허용
+    bRetriggerInstancedAbility = true;
+
     // 콤보 상태(Step)는 인스턴스 멤버로 관리하므로 InstancedPerActor 필수
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
@@ -315,8 +318,8 @@ bool UKNAbilityComboAttack::ConsumeStamina()
     if (FGameplayEffectSpec* Spec = SpecHandle.Data.Get())
     {
         // 음수 Delta → 스태미나 소모
-        Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Stamina, -CachedComboRow.StaminaCost);
-        return ASC->ApplyGameplayEffectSpecToSelf(*Spec).IsValid();
+        ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+        return true;
     }
     return false;
 }

@@ -213,7 +213,6 @@ void AKNPlayerController::Input_HeavyAttack(const FInputActionValue& Value)
     UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent();
     if (!ASC) return;
 
-    // 현재 활성화된 ComboAttack 인스턴스 탐색
     TArray<FGameplayAbilitySpec*> MatchingSpecs;
     ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
         FGameplayTagContainer(KatanaNeon::Ability::Combat::Attack),
@@ -230,18 +229,18 @@ void AKNPlayerController::Input_HeavyAttack(const FInputActionValue& Value)
 
             if (Spec->IsActive())
             {
-                // 콤보 진행 중 → 다음 단계 Heavy 예약 후 리턴
+                // bNextIsHeavy = true 세팅 후 return 제거
+                // → TryActivate까지 흘러가야 AdvanceCombo가 호출됨
                 ComboAbility->RequestHeavyAttack();
-                return;
             }
             else
             {
-                // 콤보 비활성 → 첫 타 Heavy 예약 후 활성화
                 ComboAbility->PrepareHeavyStart();
             }
         }
     }
 
+    // 활성/비활성 모두 여기서 TryActivate 호출
     TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
 }
 
