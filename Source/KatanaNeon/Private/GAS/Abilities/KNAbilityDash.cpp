@@ -31,6 +31,8 @@ UKNAbilityDash::UKNAbilityDash()
 
     // 무적 중 재대시 불가 — 연속 무적 남용 방지
     ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::Invincible);
+    // 몽타주 재생 중 재시전 차단
+    ActivationBlockedTags.AddTag(KatanaNeon::State::Combat::Dashing);
 
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
@@ -120,12 +122,18 @@ void UKNAbilityDash::ActivateAbility(
                         this, NAME_None, MontageToPlay, 1.0f, NAME_None, false);
 
                 MontageTask->OnCompleted.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
-                MontageTask->OnBlendOut.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
+                //MontageTask->OnBlendOut.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
                 MontageTask->OnInterrupted.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
                 MontageTask->OnCancelled.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
                 MontageTask->ReadyForActivation();
 
                 bIsDashMontageActive = true;
+
+                // 몽타주 재생 중 재시전 차단 태그 부여
+                if (UAbilitySystemComponent* DashASC = GetAbilitySystemComponentFromActorInfo())
+                {
+                    DashASC->AddLooseGameplayTag(KatanaNeon::State::Combat::Dashing);
+                }
             }
         }
     }
@@ -159,6 +167,11 @@ void UKNAbilityDash::EndAbility(
         if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Invincible))
         {
             ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Invincible);
+        }
+        // 강제 종료 시에도 차단 태그 안전 제거
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Dashing))
+        {
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Dashing);
         }
     }
 
@@ -269,12 +282,30 @@ UAnimMontage* UKNAbilityDash::SelectDashMontage(const FKNDashMontageRow* InRow) 
 
     // 상태 판별 — 우선순위: 공중 > 달리기 > 지상
     const bool bIsInAir = Character->GetCharacterMovement()->IsFalling();
-    const bool bIsSprinting = OwnerASC->HasMatchingGameplayTag(KatanaNeon::Ability::Movement::Sprint);
+    const bool bIsSprinting = OwnerASC->HasMatchingGameplayTag(KatanaNeon::State::Movement::Sprinting);
     const bool bIsDrawn = OwnerASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
 
-    if (bIsInAir)     return bIsDrawn ? InRow->Air_Drawn : InRow->Air_Sheath;
-    if (bIsSprinting) return bIsDrawn ? InRow->Sprint_Drawn : InRow->Sprint_Sheath;
-    return                             bIsDrawn ? InRow->Ground_Drawn : InRow->Ground_Sheath;
+    UE_LOG(LogTemp, Warning,
+        TEXT("[DashMontage] InAir:%d / Sprint:%d / Drawn:%d / AirDrawn:%d / SprintDrawn:%d"),
+        bIsInAir, bIsSprinting, bIsDrawn,
+        InRow->Air_Drawn != nullptr,
+        InRow->Sprint_Drawn != nullptr);
+    
+    // 상태별 몽타주 우선 선택, 없으면 지상 몽타주로 폴백합니다.
+    if (bIsInAir)
+    {
+        UAnimMontage* AirMontage = bIsDrawn ? InRow->Air_Drawn : InRow->Air_Sheath;
+        if (AirMontage) return AirMontage;
+    }
+
+    if (bIsSprinting)
+    {
+        UAnimMontage* SprintMontage = bIsDrawn ? InRow->Sprint_Drawn : InRow->Sprint_Sheath;
+        if (SprintMontage) return SprintMontage;
+    }
+
+    // 지상 몽타주 (폴백 포함)
+    return bIsDrawn ? InRow->Ground_Drawn : InRow->Ground_Sheath;
 }
 
 void UKNAbilityDash::OnInvincibleExpired()
@@ -300,6 +331,15 @@ void UKNAbilityDash::OnInvincibleExpired()
 void UKNAbilityDash::OnDashMontageFinished()
 {
     bIsDashMontageActive = false;
+
+    // 몽타주 완료 시 재시전 차단 태그 제거
+    if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+    {
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Dashing))
+        {
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Combat::Dashing);
+        }
+    }
 
     EndAbility(
         GetCurrentAbilitySpecHandle(),

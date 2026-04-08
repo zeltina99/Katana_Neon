@@ -53,6 +53,7 @@ namespace KatanaNeon
         {
             // ── 이동 상태 ────────────────────────────────────
             UE_DEFINE_GAMEPLAY_TAG(DoubleJumped, "KatanaNeon.State.Movement.DoubleJumped")
+            UE_DEFINE_GAMEPLAY_TAG(Sprinting, "KatanaNeon.State.Movement.Sprinting")
         }
 
         namespace Overclock
@@ -76,6 +77,8 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(StaminaImmune, "KatanaNeon.State.Combat.StaminaImmune")
             UE_DEFINE_GAMEPLAY_TAG(OverclockTactical, "KatanaNeon.State.Combat.OverclockTactical")
             UE_DEFINE_GAMEPLAY_TAG(WorldTimeFrozen, "KatanaNeon.State.Combat.WorldTimeFrozen")
+
+            UE_DEFINE_GAMEPLAY_TAG(Dashing, "KatanaNeon.State.Combat.Dashing")
 
             namespace Combo
             {

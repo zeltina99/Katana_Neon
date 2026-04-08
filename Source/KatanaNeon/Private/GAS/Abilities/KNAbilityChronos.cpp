@@ -42,7 +42,7 @@ bool UKNAbilityChronos::CanActivateAbility(
     // 최초 활성화: 크로노스 게이지 잔량 확인
     if (const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
     {
-        if (const auto* AttrSet = ASC->GetSet<UKNAttributeSet>())
+        if (const UKNAttributeSet* AttrSet = ASC->GetSet<UKNAttributeSet>())
         {
             return AttrSet->GetChronos() > 0.0f;
         }
@@ -180,7 +180,7 @@ void UKNAbilityChronos::OnDrainTick()
     if (!ASC || !ChronosDrainGEClass) return;
 
     // 잔량 확인 → 0 이하면 어빌리티 자동 종료
-    if (const auto* AttrSet = ASC->GetSet<UKNAttributeSet>())
+    if (const UKNAttributeSet* AttrSet = ASC->GetSet<UKNAttributeSet>())
     {
         if (AttrSet->GetChronos() <= 0.0f)
         {

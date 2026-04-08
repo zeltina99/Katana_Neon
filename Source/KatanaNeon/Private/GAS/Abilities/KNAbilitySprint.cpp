@@ -78,6 +78,13 @@ void UKNAbilitySprint::ActivateAbility(
                 *SprintBuffGEClass->GetName());
         }
     }
+    // 달리기 상태 태그 부여 — 대시 등 외부에서 감지할 수 있도록 합니다.
+    ASC->AddLooseGameplayTag(KatanaNeon::State::Movement::Sprinting);
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Sprint] Sprinting 태그 부여됨: %d"),
+        ASC->HasMatchingGameplayTag(KatanaNeon::State::Movement::Sprinting));
+
 }
 
 void UKNAbilitySprint::EndAbility(
@@ -94,6 +101,12 @@ void UKNAbilitySprint::EndAbility(
         {
             ASC->RemoveActiveGameplayEffect(ActiveSprintGEHandle);
             ActiveSprintGEHandle.Invalidate();
+        }
+
+        // 달리기 상태 태그 제거
+        if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Movement::Sprinting))
+        {
+            ASC->RemoveLooseGameplayTag(KatanaNeon::State::Movement::Sprinting);
         }
     }
 

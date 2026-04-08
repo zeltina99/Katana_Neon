@@ -74,6 +74,8 @@ namespace KatanaNeon
              *          AKNPlayerCharacter::Landed()에서 반드시 제거해야 합니다.
              */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(DoubleJumped)
+            /** @brief 달리기(Sprint)가 활성화된 상태를 나타내는 태그 */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprinting)
         }
 
         namespace Overclock
@@ -135,6 +137,9 @@ namespace KatanaNeon
              *          ComboAttack 어빌리티가 이 태그 존재 시 FKNOverclockLv3Row.FrozenDamageMultiplier를 조회합니다.
              */
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WorldTimeFrozen)
+
+            /** @brief 대시 몽타주 재생 중 상태. 몽타주가 끝나기 전까지 재시전을 차단합니다. */
+            KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dashing)
 
             namespace Combo
             {
