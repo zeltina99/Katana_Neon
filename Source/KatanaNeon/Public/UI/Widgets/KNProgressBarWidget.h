@@ -98,6 +98,6 @@ private:
     TObjectPtr<UMaterialInstanceDynamic> DynamicFillMaterial = nullptr;
 
     /** @brief 현재 적용된 퍼센트 캐시 — 불필요한 렌더 트랜스폼 호출을 방지합니다. */
-    float CachedPercent = 1.0f;
+    float CachedPercent = -1.0f;
 #pragma endregion 런타임 상태
 };

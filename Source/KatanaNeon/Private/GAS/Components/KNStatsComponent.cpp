@@ -81,6 +81,12 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
         OnChronosChanged.Broadcast(Data.NewValue, AttributeSet->GetMaxChronos());
             });
 
+    // 무기 상태 태그 변경 감지
+    ASC->RegisterGameplayTagEvent(
+        KatanaNeon::State::Combat::WeaponDrawn,
+        EGameplayTagEventType::NewOrRemoved)
+        .AddUObject(this, &UKNStatsComponent::OnWeaponDrawnTagChanged);
+
     /**
      * @brief 이동 속도 동기화 델리게이트
      * GAS의 이동 속도 스탯이 변경될 때마다(버프 획득/해제 등) 실제 캡슐 물리 엔진(MaxWalkSpeed)에 즉각 반영합니다.
@@ -278,6 +284,11 @@ void UKNStatsComponent::RestartRegenDelay()
         &UKNStatsComponent::StartStaminaRegen,
         StaminaRegenDelaySeconds,
         /*bLoop=*/false);
+}
+
+void UKNStatsComponent::OnWeaponDrawnTagChanged(const FGameplayTag Tag, int32 Count)
+{
+    OnWeaponStateChanged.Broadcast(Count > 0);
 }
 #pragma endregion 내부 콜백 및 헬퍼 구현
 

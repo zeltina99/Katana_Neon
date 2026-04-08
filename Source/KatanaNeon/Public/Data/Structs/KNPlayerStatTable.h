@@ -195,26 +195,45 @@ public:
 };
 #pragma endregion 점프 설정 테이블
 
-#pragma region 대시 몽타주 테이블
 /**
- * @struct FKNDashMontageRow
- * @brief 대시 방향별 몽타주를 스탠스에 따라 관리하는 행 구조체입니다.
+ * @brief 대시 몽타주 데이터 행 구조체입니다.
+ * @details 발도/납도 × 지상/공중/달리기 × 8방향 조합으로 몽타주를 선택합니다.
  */
 USTRUCT(BlueprintType)
-struct KATANANEON_API FKNDashMontageRow : public FTableRowBase
+struct FKNDashMontageRow : public FTableRowBase
 {
     GENERATED_BODY()
 
-public:
-    /** @brief 납도 상태 대시 몽타주 */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Dash|Montage")
-    TObjectPtr<UAnimMontage> SheathMontage = nullptr;
+#pragma region 지상 대시 몽타주
+    /** @brief 지상 납도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Ground")
+    TObjectPtr<UAnimMontage> Ground_Sheath = nullptr;
 
-    /** @brief 발도 상태 대시 몽타주 */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Dash|Montage")
-    TObjectPtr<UAnimMontage> DrawnMontage = nullptr;
+    /** @brief 지상 발도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Ground")
+    TObjectPtr<UAnimMontage> Ground_Drawn = nullptr;
+#pragma endregion 지상 대시 몽타주
+
+#pragma region 공중 대시 몽타주
+    /** @brief 공중 납도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Air")
+    TObjectPtr<UAnimMontage> Air_Sheath = nullptr;
+
+    /** @brief 공중 발도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Air")
+    TObjectPtr<UAnimMontage> Air_Drawn = nullptr;
+#pragma endregion 공중 대시 몽타주
+
+#pragma region 달리기 대시 몽타주
+    /** @brief 달리기 납도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Sprint")
+    TObjectPtr<UAnimMontage> Sprint_Sheath = nullptr;
+
+    /** @brief 달리기 발도 상태 대시 몽타주 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Sprint")
+    TObjectPtr<UAnimMontage> Sprint_Drawn = nullptr;
+#pragma endregion 달리기 대시 몽타주
 };
-#pragma endregion 대시 몽타주 테이블
 
 #pragma region 콤보 공격 테이블
 /**

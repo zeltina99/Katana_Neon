@@ -55,7 +55,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnKNOverclockPointChanged, float, 
  * @param NewLevel 도달한 새로운 오버클럭 레벨 (0~3)
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNOverclockLevelChanged, int32, NewLevel);
-#pragma endregion 델리게이트 선언 끝
+/**
+ * @brief 무기 상태(발도/납도) 변경 시 UI에 알리는 델리게이트입니다.
+ * @param bIsDrawn true = 발도, false = 납도
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKNWeaponStateChanged, bool, bIsDrawn);
+#pragma endregion 델리게이트 선언
 
 /**
  * @class  UKNStatsComponent
@@ -103,6 +108,10 @@ public:
     /** @brief StatsComponent 초기화 완료 시 HUD가 구독할 델리게이트 */
     UPROPERTY(BlueprintAssignable, Category = "KatanaNeon|Stats|Event")
     FOnKNHealthChanged OnStatComponentInitialized;
+
+    /** @brief 무기 상태 UI가 구독할 발도/납도 변경 이벤트 디스패처 */
+    UPROPERTY(BlueprintAssignable, Category = "KatanaNeon|Stats|Event")
+    FOnKNWeaponStateChanged OnWeaponStateChanged;
 #pragma endregion 외부에 노출할 UI 동기화 이벤트
 
 #pragma region 핵심 조작 및 초기화 인터페이스
@@ -205,7 +214,14 @@ private:
      * @return GE 스펙 적용이 성공적으로 이루어졌으면 true 반환
      */
     bool ApplyInstantGEInternal(const FGameplayTag& StatTag, float Delta);
-#pragma endregion 내부 콜백 및 헬퍼 함수 끝
+
+    /**
+     * @brief WeaponDrawn 태그 변경 콜백입니다.
+     * @param Tag     변경된 태그
+     * @param Count   태그 카운트 (0 = 제거, 1 이상 = 부여)
+     */
+    void OnWeaponDrawnTagChanged(const FGameplayTag Tag, int32 Count);
+#pragma endregion 내부 콜백 및 헬퍼 함수
 
 #pragma region 런타임 캐시 및 시스템 할당 데이터베이스
 private:

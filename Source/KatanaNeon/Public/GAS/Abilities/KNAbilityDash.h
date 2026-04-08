@@ -169,14 +169,22 @@ private:
      * @brief 입력 방향 또는 전방으로 캐릭터를 LaunchCharacter합니다.
      * @param Character 발사할 AKNCharacterBase 객체
      */
-    void LaunchDash(AKNCharacterBase* Character);
+    void LaunchDash(AKNCharacterBase* InCharacter);
 
     /**
     * @brief 입력 방향과 캐릭터 전방 각도를 계산하여 DT_DashMontage 행 이름을 반환합니다.
     * @param Character 방향을 계산할 대상 캐릭터
     * @return Forward, ForwardLeft, ForwardRight, Left, Right, BackLeft, BackRight, Back 중 하나
     */
-    FName GetDodgeDirectionRowName(AKNCharacterBase* Character) const;
+    FName GetDodgeDirectionRowName(const AKNCharacterBase* InCharacter) const;
+
+    /**
+     * @brief 현재 캐릭터 상태(공중/달리기/지상 × 발도/납도)에 맞는 몽타주를 선택합니다.
+     * @details 선택 우선순위: 공중(IsFalling) > 달리기(Sprint 태그) > 지상
+     * @param InRow DataTable에서 조회한 방향별 몽타주 행
+     * @return 선택된 UAnimMontage, 해당 슬롯이 비어있으면 nullptr
+     */
+    UAnimMontage* SelectDashMontage(const FKNDashMontageRow* InRow) const;
 
     /**
      * @brief 무적 만료 타이머 콜백 — State.Combat.Invincible 태그 제거 후 EndAbility.

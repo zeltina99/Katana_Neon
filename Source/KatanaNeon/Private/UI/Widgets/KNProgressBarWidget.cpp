@@ -16,6 +16,8 @@ void UKNProgressBarWidget::NativeConstruct()
     {
         DynamicFillMaterial = UMaterialInstanceDynamic::Create(FillMaterial, this);
         Image_Fill->SetBrushFromMaterial(DynamicFillMaterial);
+
+        DynamicFillMaterial->SetScalarParameterValue(FillPercentParamName, 1.0f);
     }
 }
 #pragma endregion 위젯 생명주기 오버라이드 구현

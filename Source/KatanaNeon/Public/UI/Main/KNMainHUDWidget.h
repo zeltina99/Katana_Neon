@@ -10,6 +10,7 @@
 class UKNProgressBarWidget;
 class UKNOverclockGroupWidget;
 class UKNDynamicIconWidget;
+class UKNWeaponStateWidget;
 class UKNStatsComponent;
 class UAbilitySystemComponent;
 class UKNAttributeSet;
@@ -84,6 +85,13 @@ public:
     void UpdateBossHealth(float Current, float Max);
 
     /**
+     * @brief 무기 상태를 갱신합니다.
+     * @param bIsDrawn true = 발도, false = 납도
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|UI|HUD")
+    void UpdateWeaponState(bool bIsDrawn);
+
+    /**
      * @brief 보스 UI를 표시/숨깁니다.
      * @param bVisible 보스 전투 진입 시 true
      */
@@ -132,6 +140,13 @@ private:
      */
     UFUNCTION()
     void OnOverclockPointChangedCallback(float Current, float Max);
+
+    /**
+     * @brief OnWeaponStateChanged 델리게이트 콜백입니다.
+     * @param bIsDrawn true = 발도, false = 납도
+     */
+    UFUNCTION()
+    void OnWeaponStateChangedCallback(bool bIsDrawn);
 #pragma endregion 내부 콜백 함수
 
 #pragma region UMG 바인딩 스탯 바
@@ -159,11 +174,11 @@ protected:
 #pragma region UMG 바인딩 발도/납도
 protected:
     /**
-     * @brief 발도/납도 상태 아이콘 (WBP_WeaponStateIcon) — 미구현
-     * @details BindWidgetOptional 로 선언하여 WBP 미배치 시 크래시를 방지합니다.
+     * @brief 발도/납도 상태 아이콘 위젯입니다.
+     * @details 블루프린트 위젯 이름이 반드시 WeaponState_Widget 이어야 합니다.
      */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
-    TObjectPtr<UKNDynamicIconWidget> WeaponState_Widget = nullptr;
+    TObjectPtr<UKNWeaponStateWidget> WeaponState_Widget = nullptr;
 #pragma endregion UMG 바인딩 발도/납도
 
 #pragma region UMG 바인딩 스킬 덱

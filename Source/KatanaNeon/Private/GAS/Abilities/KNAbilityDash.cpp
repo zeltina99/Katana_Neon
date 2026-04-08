@@ -3,6 +3,7 @@
 
 #include "GAS/Abilities/KNAbilityDash.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -10,6 +11,16 @@
 #include "Characters/Base/KNCharacterBase.h"
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GAS/Tags/KNStatsTags.h"
+
+#pragma region 방향 판정 임계값 상수
+namespace KNDash
+{
+    /** @brief 전방/후방 판정 내적 임계값 (cos 45°) */
+    static constexpr float ForwardThreshold = 0.71f;
+    /** @brief 후방 대각 판정 내적 임계값 */
+    static constexpr float BackDiagThreshold = 0.38f;
+}
+#pragma endregion 방향 판정 임계값 상수
 
 #pragma region 기본 생성자 및 초기화 구현
 UKNAbilityDash::UKNAbilityDash()
@@ -95,17 +106,14 @@ void UKNAbilityDash::ActivateAbility(
     // ── 4. 대시 이동 ──
     LaunchDash(Owner);
 
-    // ── 5. 대시 몽타주 재생 (옵션) ──
+    // ── 5. 상태 × 발도/납도 조합 몽타주 선택 및 재생 ──
     if (DashMontageTable)
     {
         const FName RowName = GetDodgeDirectionRowName(Owner);
-        if (const FKNDashMontageRow* Row = DashMontageTable->FindRow<FKNDashMontageRow>(RowName, TEXT("DashMontage")))
+        if (const FKNDashMontageRow* Row =
+            DashMontageTable->FindRow<FKNDashMontageRow>(RowName, TEXT("DashMontage")))
         {
-            const bool bIsDrawn = GetAbilitySystemComponentFromActorInfo()
-                ->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
-
-            UAnimMontage* MontageToPlay = bIsDrawn ? Row->DrawnMontage : Row->SheathMontage;
-            if (MontageToPlay)
+            if (UAnimMontage* MontageToPlay = SelectDashMontage(Row))
             {
                 UAbilityTask_PlayMontageAndWait* MontageTask =
                     UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -116,6 +124,7 @@ void UKNAbilityDash::ActivateAbility(
                 MontageTask->OnInterrupted.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
                 MontageTask->OnCancelled.AddDynamic(this, &UKNAbilityDash::OnDashMontageFinished);
                 MontageTask->ReadyForActivation();
+
                 bIsDashMontageActive = true;
             }
         }
@@ -158,31 +167,6 @@ void UKNAbilityDash::EndAbility(
 #pragma endregion GAS 핵심 오버라이드 구현
 
 #pragma region 내부 헬퍼 함수 구현
-FName UKNAbilityDash::GetDodgeDirectionRowName(AKNCharacterBase* Character) const
-{
-    if (!Character) return TEXT("Forward");
-
-    FVector Input = Character->GetLastMovementInputVector();
-    if (Input.IsNearlyZero()) return TEXT("Back");
-
-    Input.Z = 0.f;
-    Input.Normalize();
-
-    const float F = FVector::DotProduct(Input, Character->GetActorForwardVector());
-    const float R = FVector::DotProduct(Input, Character->GetActorRightVector());
-
-    if (F >= 0.71f)  return TEXT("Forward");
-    if (F <= -0.71f)
-    {
-        if (R < -0.38f) return TEXT("BackLeft");
-        if (R > 0.38f) return TEXT("BackRight");
-        return TEXT("Back");
-    }
-    return (R < 0.f)
-        ? ((F > 0.f) ? TEXT("ForwardLeft") : TEXT("BackLeft"))
-        : ((F > 0.f) ? TEXT("ForwardRight") : TEXT("BackRight"));
-}
-
 bool UKNAbilityDash::LoadActionCostRow()
 {
     // 에러 해결 1: ActionCostDataTable 대신 FDataTableRowHandle 검사
@@ -230,22 +214,67 @@ void UKNAbilityDash::GrantInvincible(UAbilitySystemComponent* ASC)
 }
 
 // 에러 해결 2: 헤더와 동일하게 파라미터를 AKNCharacterBase로 변경
-void UKNAbilityDash::LaunchDash(AKNCharacterBase* Character)
+void UKNAbilityDash::LaunchDash(AKNCharacterBase* InCharacter)
 {
-    if (!Character) return;
+    if (!InCharacter) return;
 
     // 마지막 입력 방향 우선, 없으면 캐릭터 전방
-    FVector Dir = Character->GetLastMovementInputVector();
+    FVector Dir = InCharacter->GetLastMovementInputVector();
     if (Dir.IsNearlyZero())
     {
-        Dir = Character->GetActorForwardVector();
+        Dir = InCharacter->GetActorForwardVector();
     }
 
     Dir.Z = 0.0f; // 수평 대시만 허용
     Dir = Dir.GetSafeNormal();
 
     // DashImpulse 변수 참조 오류 해결 완료
-    Character->LaunchCharacter(Dir * DashImpulse, true, false);
+    InCharacter->LaunchCharacter(Dir * DashImpulse, true, false);
+}
+
+FName UKNAbilityDash::GetDodgeDirectionRowName(const AKNCharacterBase* InCharacter) const
+{
+    if (!InCharacter) return TEXT("Forward");
+
+    FVector Input = InCharacter->GetLastMovementInputVector();
+    if (Input.IsNearlyZero()) return TEXT("Back");
+
+    Input.Z = 0.0f;
+    Input.Normalize();
+
+    const float F = FVector::DotProduct(Input, InCharacter->GetActorForwardVector());
+    const float R = FVector::DotProduct(Input, InCharacter->GetActorRightVector());
+
+    if (F >= KNDash::ForwardThreshold)  return TEXT("Forward");
+    if (F <= -KNDash::ForwardThreshold)
+    {
+        if (R < -KNDash::BackDiagThreshold) return TEXT("BackLeft");
+        if (R > KNDash::BackDiagThreshold) return TEXT("BackRight");
+        return TEXT("Back");
+    }
+    return (R < 0.0f)
+        ? ((F > 0.0f) ? TEXT("ForwardLeft") : TEXT("BackLeft"))
+        : ((F > 0.0f) ? TEXT("ForwardRight") : TEXT("BackRight"));
+}
+
+UAnimMontage* UKNAbilityDash::SelectDashMontage(const FKNDashMontageRow* InRow) const
+{
+    if (!InRow) return nullptr;
+
+    const ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+    if (!Character) return nullptr;
+
+    const UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
+    if (!OwnerASC) return nullptr;
+
+    // 상태 판별 — 우선순위: 공중 > 달리기 > 지상
+    const bool bIsInAir = Character->GetCharacterMovement()->IsFalling();
+    const bool bIsSprinting = OwnerASC->HasMatchingGameplayTag(KatanaNeon::Ability::Movement::Sprint);
+    const bool bIsDrawn = OwnerASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
+
+    if (bIsInAir)     return bIsDrawn ? InRow->Air_Drawn : InRow->Air_Sheath;
+    if (bIsSprinting) return bIsDrawn ? InRow->Sprint_Drawn : InRow->Sprint_Sheath;
+    return                             bIsDrawn ? InRow->Ground_Drawn : InRow->Ground_Sheath;
 }
 
 void UKNAbilityDash::OnInvincibleExpired()
