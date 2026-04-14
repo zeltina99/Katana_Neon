@@ -380,6 +380,7 @@ bool UKNAbilityComboAttack::ConsumeStamina()
 
     if (FGameplayEffectSpec* Spec = SpecHandle.Data.Get())
     {
+        Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Stamina, -CachedComboRow.StaminaCost);
         // 음수 Delta → 스태미나 소모
         ASC->ApplyGameplayEffectSpecToSelf(*Spec);
         return true;

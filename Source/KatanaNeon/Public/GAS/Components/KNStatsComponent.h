@@ -311,6 +311,8 @@ private:
      * @brief 스태미나 소모 후 리젠이 시작되기까지의 대기 시간 (초).
      * @details 소모가 연속으로 발생하면 이 딜레이가 매번 초기화됩니다.
      */
-    static constexpr float StaminaRegenDelaySeconds = 1.0f;
+    UPROPERTY(EditDefaultsOnly, Category = "KatanaNeon|Stats|Stamina",
+        meta = (ClampMin = 0.0f, ClampMax = 5.0f))
+    float StaminaRegenDelaySeconds = 1.0f;
 #pragma endregion 스태미나 리젠 설정 데이터
 };
