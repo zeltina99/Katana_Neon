@@ -29,25 +29,20 @@ enum class EKNComboAttackType : uint8
  * @file    KNAbilityComboAttack.h
  * @class   UKNAbilityComboAttack
  * @brief   플레이어 약공격(Light) / 강공격(Heavy) 5단계 콤보 어빌리티입니다.
+ * @details MVC 및 SRP 패턴을 준수하여 로직과 데이터를 엄격히 분리합니다.
  *
- * @details
- * [콤보 트리 – DT_PlayerComboAttack 행 키 규약]
- * - 약공격  : LightAttack_1 ~ LightAttack_5  (AttackType = 0)
- * - 강공격  : HeavyAttack_1 ~ HeavyAttack_5  (AttackType = 1)
+ * [콤보 트리 – DataTable 행 키 규약]
+ * - 약공격 : LightAttack_1 ~ LightAttack_5
+ * - 강공격 : HeavyAttack_1 ~ HeavyAttack_5
  *
- * [콤보 입력 경로 예시]
- * - L → L → L → H → H  :  약1 → 약2 → 약3 → 강4 → 강5
- * - H (1단계)            :  즉시 강공1 (ComboWindowTime=0 → 콤보 종료)
+ * [입력 버퍼링 흐름]
+ * - 비활성 상태 → TryActivate → ActivateAbility (1단계 시작)
+ * - 활성 상태   → Controller가 BufferNextInput 직접 호출
+ * - AN_ComboWindowOpen 도달 → 버퍼 확인 → 즉시 AdvanceCombo 또는 윈도우 오픈
  *
  * [ComboWindowTime 의미]
  * - > 0.0f : 다음 입력 대기 창이 열림
- * - = 0.0f : 피니셔(Finisher) — 다음 입력 없이 어빌리티 종료
- *
- * [SRP 책임 분리]
- * - 히트박스 판정 : AnimNotify → ActivateHitbox() 콜백
- * - 스태미나 소모 : KNInstantModifier GE 경유
- * - 오버클럭 획득 : KNStatsComponent::GainOverclockPoint() 위임
- * - 몽타주 재생   : UAbilityTask_PlayMontageAndWait Task 위임
+ * - = 0.0f : 피니셔(Finisher) — Heavy 또는 Light 5단계 종료
  */
 UCLASS()
 class KATANANEON_API UKNAbilityComboAttack : public UGameplayAbility
@@ -201,11 +196,15 @@ protected:
 
 #pragma region 런타임 콤보 상태
 private:
+    /** @brief 현재 재생 중인 몽타주 태스크 (이전 태스크 Delegate 해제용으로 필수!) */
+    UPROPERTY()
+    TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask = nullptr;
+
     /** @brief 현재 진행 중인 콤보 단계 (1 ~ 5, 0 = 비활성) */
     int32 CurrentComboStep = 0;
 
-    /** @brief 현재 공격 유형 (0 = Light, 1 = Heavy) */
-    int32 CurrentAttackType = 0;
+    /** @brief 데이터 일관성을 위해 int32 대신 Enum 사용 */
+    EKNComboAttackType CurrentAttackType = EKNComboAttackType::Light;
 
     /** @brief 다음 입력 수신 창 활성 여부 */
     bool bComboWindowOpen = false;
@@ -252,10 +251,10 @@ private:
     /**
      * @brief 단계·타입에서 DataTable 행 이름을 생성합니다.
      * @param Step       콤보 단계 (1 ~ 5)
-     * @param AttackType 공격 타입 (0 = Light, 1 = Heavy)
+     * @param AttackType 공격 타입 (EKNComboAttackType::Light 또는 Heavy)
      * @return "LightAttack_N" 또는 "HeavyAttack_N" 형태의 FName
      */
-    FName MakeComboRowName(int32 Step, int32 AttackType) const;
+    FName MakeComboRowName(int32 Step, EKNComboAttackType AttackType) const;
 
     /**
      * @brief DataTable에서 지정 행을 읽어 CachedComboRow에 저장합니다.
@@ -283,5 +282,9 @@ private:
     /** @brief 콤보 윈도우 만료 콜백 */
     UFUNCTION()
     void OnComboWindowExpired();
+
+    /** @brief 몽타주가 완전히 종료되었을 때 호출됩니다. 어빌리티를 최종 종료합니다. */
+    UFUNCTION()
+    void OnMontageEnded();
 #pragma endregion 내부 헬퍼 함수
 };

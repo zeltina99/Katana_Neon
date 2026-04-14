@@ -262,25 +262,28 @@ void AKNPlayerController::Input_HeavyAttack(const FInputActionValue& Value)
     {
         if (!Spec) continue;
 
-        for (UGameplayAbility* Instance : Spec->GetAbilityInstances())
+        if (Spec->IsActive())
         {
-            UKNAbilityComboAttack* ComboAbility = Cast<UKNAbilityComboAttack>(Instance);
-            if (!ComboAbility) continue;
-
-            if (Spec->IsActive())
+            UGameplayAbility* PrimaryInstance = Spec->GetPrimaryInstance();
+            UKNAbilityComboAttack* ComboAbility = Cast<UKNAbilityComboAttack>(PrimaryInstance);
+            if (ComboAbility != nullptr)
             {
-                // bNextIsHeavy = true 세팅 후 return 제거
-                // → TryActivate까지 흘러가야 AdvanceCombo가 호출됨
-                ComboAbility->RequestHeavyAttack();
+                // Input_Attack과 동일한 패턴 — BufferNextInput 후 early return
+                ComboAbility->BufferNextInput(true);
+                return;
             }
-            else
+        }
+        else
+        {
+            UGameplayAbility* PrimaryInstance = Spec->GetPrimaryInstance();
+            UKNAbilityComboAttack* ComboAbility = Cast<UKNAbilityComboAttack>(PrimaryInstance);
+            if (ComboAbility != nullptr)
             {
                 ComboAbility->PrepareHeavyStart();
             }
         }
     }
 
-    // 활성/비활성 모두 여기서 TryActivate 호출
     TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
 }
 

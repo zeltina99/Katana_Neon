@@ -18,10 +18,9 @@ UKNAbilityComboAttack::UKNAbilityComboAttack()
     TempTags.AddTag(KatanaNeon::Ability::Combat::Attack);
     SetAssetTags(TempTags);
 
-    //사망
-
-    // 콤보 윈도우 중 재입력 허용
-    //bRetriggerInstancedAbility = true;
+    // 연타 시 어빌리티가 강제 종료되는 현상을 방지합니다.
+    // 활성 중 입력은 Controller → BufferNextInput 경로로 처리합니다.
+    //bRetriggerInstancedAbility = false;
 
     // 콤보 상태(Step)는 인스턴스 멤버로 관리하므로 InstancedPerActor 필수
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -55,10 +54,10 @@ bool UKNAbilityComboAttack::CanActivateAbility(
     if (bComboWindowOpen) return true;
 
     // 1단계 시작 전 스태미나 사전 검사
-    const FName FirstRow = MakeComboRowName(1, 0); // Light 1단계 기준
+    const FName FirstRow = MakeComboRowName(1, EKNComboAttackType::Light);
     const FKNComboAttackRow* TestRow =
         GetComboDataTable(bDrawn)->FindRow<FKNComboAttackRow>(FirstRow, TEXT("CanActivate"));
-    if (!TestRow) return false;
+    if (TestRow == nullptr) return false;
 
     if (const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
     {
@@ -98,7 +97,7 @@ void UKNAbilityComboAttack::ActivateAbility(
     // ── 1단계 시작: 이 시점의 스탠스를 콤보 끝까지 고정 ──
     bIsDrawnCombo = IsWeaponDrawn(ActorInfo);
     CurrentComboStep = 1;
-    CurrentAttackType = bNextIsHeavy ? 1 : 0;
+    CurrentAttackType = bNextIsHeavy ? EKNComboAttackType::Heavy : EKNComboAttackType::Light;
     bNextIsHeavy = false;
 
     const FName RowName = MakeComboRowName(CurrentComboStep, CurrentAttackType);
@@ -139,6 +138,13 @@ void UKNAbilityComboAttack::EndAbility(
         World->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
     }
 
+    // [핵심 해결책] 어빌리티 종료 시 남아있는 태스크를 안전하게 정리합니다.
+    if (CurrentMontageTask != nullptr)
+    {
+        CurrentMontageTask->EndTask();
+        CurrentMontageTask = nullptr;
+    }
+
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 #pragma endregion GAS 핵심 오버라이드 구현
@@ -147,8 +153,20 @@ void UKNAbilityComboAttack::EndAbility(
 void UKNAbilityComboAttack::BufferNextInput(bool bIsHeavy)
 {
     // 강공격(Heavy) 상태일 때 다시 강공격이 들어오는 것은 차단합니다.
-    if (bIsHeavy && CurrentAttackType == static_cast<int32>(EKNComboAttackType::Heavy))
+    if (bIsHeavy && CurrentAttackType == EKNComboAttackType::Heavy)
     {
+        return;
+    }
+
+    if (bComboWindowOpen)
+    {
+        bComboWindowOpen = false;
+        GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
+        if (bIsHeavy && CurrentAttackType == EKNComboAttackType::Light)
+        {
+            bNextIsHeavy = true;
+        }
+        AdvanceCombo();
         return;
     }
 
@@ -227,7 +245,7 @@ void UKNAbilityComboAttack::ActivateHitbox()
 void UKNAbilityComboAttack::OpenComboWindow()
 {
     // Heavy 공격은 항상 피니셔 — 윈도우 없이 즉시 종료
-    if (CurrentAttackType == 1)
+    if (CurrentAttackType == EKNComboAttackType::Heavy)
     {
         OnComboWindowExpired();
         return;
@@ -244,7 +262,7 @@ void UKNAbilityComboAttack::OpenComboWindow()
     if (bInputBuffered)
     {
         bInputBuffered = false;
-        if (bBufferedInputIsHeavy && CurrentAttackType == 0)
+        if (bBufferedInputIsHeavy && CurrentAttackType == EKNComboAttackType::Light)
         {
             bNextIsHeavy = true;
         }
@@ -264,12 +282,12 @@ void UKNAbilityComboAttack::OpenComboWindow()
 
 void UKNAbilityComboAttack::RequestHeavyAttack()
 {
-    if (bComboWindowOpen && CurrentAttackType == 0)
+    if (bComboWindowOpen && CurrentAttackType == EKNComboAttackType::Light)
     {
         bNextIsHeavy = true;
     }
     // 윈도우 전 Heavy 입력도 버퍼링
-    else if (CurrentComboStep > 0 && !bComboWindowOpen && CurrentAttackType == 0)
+    else if (CurrentComboStep > 0 && !bComboWindowOpen && CurrentAttackType == EKNComboAttackType::Light)
     {
         bInputBuffered = true;
         bBufferedInputIsHeavy = true;
@@ -301,7 +319,7 @@ bool UKNAbilityComboAttack::IsWeaponDrawn(const FGameplayAbilityActorInfo* Actor
     return ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
 }
 
-FName UKNAbilityComboAttack::MakeComboRowName(int32 Step, int32 AttackType) const
+FName UKNAbilityComboAttack::MakeComboRowName(int32 Step, EKNComboAttackType AttackType) const
 {
     // 최적화: FString 힙 할당 없이 static 배열로 즉시 반환
     static const FName LightNames[] = {
@@ -314,7 +332,7 @@ FName UKNAbilityComboAttack::MakeComboRowName(int32 Step, int32 AttackType) cons
     };
 
     const int32 SafeIdx = FMath::Clamp(Step - 1, 0, 4);
-    return (AttackType == 0) ? LightNames[SafeIdx] : HeavyNames[SafeIdx];
+    return (AttackType == EKNComboAttackType::Light) ? LightNames[SafeIdx] : HeavyNames[SafeIdx];
 }
 
 bool UKNAbilityComboAttack::LoadComboRow(const FName& RowName)
@@ -371,6 +389,15 @@ bool UKNAbilityComboAttack::ConsumeStamina()
 
 bool UKNAbilityComboAttack::PlayComboMontage()
 {
+    // 미해제 시 L1 몽타주 종료가 EndAbility를 잘못 호출합니다.
+    if (CurrentMontageTask != nullptr)
+    {
+        CurrentMontageTask->OnCompleted.RemoveAll(this);
+        CurrentMontageTask->OnInterrupted.RemoveAll(this);
+        CurrentMontageTask->OnCancelled.RemoveAll(this);
+        CurrentMontageTask = nullptr;
+    }
+
     // ★ 몽타주는 DataTable 행의 ComboMontage 필드에서 직접 읽음
     UAnimMontage* MontageToPlay = CachedComboRow.ComboMontage;
     if (!MontageToPlay)
@@ -395,10 +422,11 @@ bool UKNAbilityComboAttack::PlayComboMontage()
         UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
             this, NAME_None, MontageToPlay, FinalPlayRate, NAME_None, false);
 
-    Task->OnCompleted.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);
-    Task->OnInterrupted.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);
-    Task->OnCancelled.AddDynamic(this, &UKNAbilityComboAttack::OnComboWindowExpired);
+    Task->OnCompleted.AddDynamic(this, &UKNAbilityComboAttack::OnMontageEnded);
+    Task->OnInterrupted.AddDynamic(this, &UKNAbilityComboAttack::OnMontageEnded);
+    Task->OnCancelled.AddDynamic(this, &UKNAbilityComboAttack::OnMontageEnded);
     Task->ReadyForActivation();
+    CurrentMontageTask = Task;
     return true;
 }
 
@@ -410,7 +438,7 @@ void UKNAbilityComboAttack::AdvanceCombo()
     // 다음 단계가 Heavy로 예약되었는지 확인
     if (bNextIsHeavy)
     {
-        CurrentAttackType = 1;
+        CurrentAttackType = EKNComboAttackType::Heavy;
         bNextIsHeavy = false;
     }
 
@@ -439,7 +467,10 @@ void UKNAbilityComboAttack::AdvanceCombo()
 void UKNAbilityComboAttack::OnComboWindowExpired()
 {
     bComboWindowOpen = false;
+}
 
+void UKNAbilityComboAttack::OnMontageEnded()
+{
     EndAbility(
         GetCurrentAbilitySpecHandle(),
         GetCurrentActorInfo(),
