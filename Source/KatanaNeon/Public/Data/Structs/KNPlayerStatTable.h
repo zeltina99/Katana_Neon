@@ -353,6 +353,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
     TObjectPtr<USoundBase> HitSound = nullptr;
 
+    /** @brief SlashVFX 스폰 시 적용할 회전 오프셋 (각 콤보 단계마다 다르게 설정 가능) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
+    FRotator SlashVFXRotationOffset = FRotator::ZeroRotator;
+
     /**
      * @brief 히트박스가 활성화되기 시작하는 애니메이션 정규화 시간 (0.0 ~ 1.0).
      * @details AnimNotify 또는 어빌리티의 WaitGameplayEvent로 참조합니다.

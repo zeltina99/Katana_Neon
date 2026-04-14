@@ -17,6 +17,19 @@ void UKNAnimNotifyState_WeaponTrail::NotifyBegin(
 {
     Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
+    // 이전 콤보의 Trail이 잔존할 경우 먼저 정리합니다.
+    // (두 번째 콤보에서 Trail이 안 나오는 버그 방지)
+    if (UNiagaraComponent* Root = SpawnedTrailRoot.Get())
+    {
+        Root->Deactivate();
+        SpawnedTrailRoot = nullptr;
+    }
+    if (UNiagaraComponent* Tip = SpawnedTrailTip.Get())
+    {
+        Tip->Deactivate();
+        SpawnedTrailTip = nullptr;
+    }
+
     if (!MeshComp || !TrailVFX) return;
 
     // 최적화: FindComponentByClass O(N) 배제 → GetKatanaMesh() O(1) Getter 사용
@@ -31,13 +44,13 @@ void UKNAnimNotifyState_WeaponTrail::NotifyBegin(
         !KatanaMesh->DoesSocketExist(SecondSocketName))
     {
         UE_LOG(LogTemp, Warning,
-            TEXT("[WeaponTrail] 소켓을 찾을 수 없습니다. FirstSocket: %s / SecondSocket: %s"),
+            TEXT("[WeaponTrail] 소켓을 찾을 수 없습니다. First: %s / Second: %s"),
             *FirstSocketName.ToString(), *SecondSocketName.ToString());
         return;
     }
 
-    // 카타나 메시에 궤적 VFX 부착 (bAutoDestroy = false → NotifyEnd에서 수동 종료)
-    UNiagaraComponent* Trail = UNiagaraFunctionLibrary::SpawnSystemAttached(
+    // 코등이 소켓에 Trail 스폰
+    UNiagaraComponent* TrailRoot = UNiagaraFunctionLibrary::SpawnSystemAttached(
         TrailVFX,
         KatanaMesh,
         FirstSocketName,
@@ -46,17 +59,30 @@ void UKNAnimNotifyState_WeaponTrail::NotifyBegin(
         EAttachLocation::SnapToTarget,
         /*bAutoDestroy=*/false);
 
-    if (!Trail) return;
+    // 칼끝 소켓에 Trail 스폰
+    UNiagaraComponent* TrailTip = UNiagaraFunctionLibrary::SpawnSystemAttached(
+        TrailVFX,
+        KatanaMesh,
+        SecondSocketName,
+        FVector::ZeroVector,
+        FRotator::ZeroRotator,
+        EAttachLocation::SnapToTarget,
+        /*bAutoDestroy=*/false);
 
-    // Niagara 파라미터로 시작/끝 소켓 위치 전달
-    Trail->SetVectorParameter(
-        TEXT("BeamStart"),
-        KatanaMesh->GetSocketLocation(FirstSocketName));
-    Trail->SetVectorParameter(
-        TEXT("BeamEnd"),
-        KatanaMesh->GetSocketLocation(SecondSocketName));
+    // Niagara 크기 파라미터 전달
+    if (TrailRoot)
+    {
+        TrailRoot->SetFloatParameter(TEXT("_EnchantSize"), EnchantSize);
+        TrailRoot->ResetSystem();
+    }
+    if (TrailTip)
+    {
+        TrailTip->SetFloatParameter(TEXT("_EnchantSize"), EnchantSize);
+        TrailTip->ResetSystem();
+    }
 
-    SpawnedTrailComp = Trail;
+    SpawnedTrailRoot = TrailRoot;
+    SpawnedTrailTip = TrailTip;
 }
 
 void UKNAnimNotifyState_WeaponTrail::NotifyEnd(
@@ -64,11 +90,16 @@ void UKNAnimNotifyState_WeaponTrail::NotifyEnd(
     UAnimSequenceBase* Animation,
     const FAnimNotifyEventReference& EventReference)
 {
-    // 궤적 VFX 비활성화 — 파티클이 자연스럽게 사그라들도록 Deactivate 사용
-    if (UNiagaraComponent* Trail = SpawnedTrailComp.Get())
+    // 파티클이 자연스럽게 사그라들도록 Destroy가 아닌 Deactivate 사용
+    if (UNiagaraComponent* Root = SpawnedTrailRoot.Get())
     {
-        Trail->Deactivate();
-        SpawnedTrailComp = nullptr;
+        Root->Deactivate();
+        SpawnedTrailRoot = nullptr;
+    }
+    if (UNiagaraComponent* Tip = SpawnedTrailTip.Get())
+    {
+        Tip->Deactivate();
+        SpawnedTrailTip = nullptr;
     }
 
     Super::NotifyEnd(MeshComp, Animation, EventReference);

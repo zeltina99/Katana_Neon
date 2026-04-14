@@ -9,13 +9,12 @@
 #pragma region 전방 선언
 class UNiagaraSystem;
 class UNiagaraComponent;
-class UStaticMeshComponent;
 #pragma endregion 전방 선언
 
 /**
  * @file    KNAnimNotifyState_WeaponTrail.h
  * @class   UKNAnimNotifyState_WeaponTrail
- * @brief   공격 모션 구간 동안 카타나 스태틱 메시의 두 소켓을 추적하여 궤적 VFX를 생성합니다.
+ * @brief   공격 모션 구간 동안 카타나 스태틱 메시의 두 소켓에 궤적 VFX를 생성합니다.
  *
  * @details
  * [SRP 책임]
@@ -23,13 +22,9 @@ class UStaticMeshComponent;
  * - 히트박스 판정, 데미지 적용은 KNAbilityComboAttack에 완전 위임합니다.
  *
  * [최적화]
- * - AKNPlayerCharacter::GetKatanaMesh() O(1) Getter를 사용하여
- *   FindComponentByClass O(N) 탐색을 완전히 배제합니다.
- * - NotifyEnd에서 컴포넌트를 명시적으로 비활성화하여 자동 소멸을 유도합니다.
- *
- * [사용법]
- * - 몽타주 노티파이 트랙에 바(Bar) 형태로 설치합니다.
- * - 디테일 패널에서 TrailVFX, FirstSocketName, SecondSocketName을 설정합니다.
+ * - AKNPlayerCharacter::GetKatanaMesh() O(1) Getter로 FindComponentByClass O(N) 배제
+ * - TWeakObjectPtr로 Niagara 컴포넌트를 보관하여 댕글링 포인터 크래시 방지
+ * - NotifyBegin 진입 시 이전 Trail 잔존 여부를 검사하여 두 번째 콤보도 정상 동작 보장
  */
 UCLASS(meta = (DisplayName = "무기 궤적 (Weapon Trail)"))
 class KATANANEON_API UKNAnimNotifyState_WeaponTrail : public UAnimNotifyState
@@ -58,15 +53,29 @@ public:
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|VFX")
     FName SecondSocketName = TEXT("Socket_Blade_Tip");
+
+    /**
+     * @brief Trail 전체 크기 배율 (_EnchantSize Niagara 파라미터로 전달됩니다).
+     * @details 몽타주마다 다른 크기를 설정하려면 이 값을 조정합니다.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|VFX",
+        meta = (ClampMin = 0.1f, ClampMax = 10.0f))
+    float EnchantSize = 3.0f;
 #pragma endregion 에디터 설정 데이터
 
 #pragma region 런타임 상태
 private:
     /**
-     * @brief 생성된 Niagara 컴포넌트 캐싱.
-     * @details NotifyEnd에서 안전하게 비활성화하기 위해 TWeakObjectPtr로 보관합니다.
+     * @brief 코등이 소켓에 생성된 Niagara 컴포넌트.
+     * @details TWeakObjectPtr 사용 — 파괴된 컴포넌트 참조 시 크래시 방지.
      */
-    TWeakObjectPtr<UNiagaraComponent> SpawnedTrailComp = nullptr;
+    TWeakObjectPtr<UNiagaraComponent> SpawnedTrailRoot = nullptr;
+
+    /**
+     * @brief 칼끝 소켓에 생성된 Niagara 컴포넌트.
+     * @details TWeakObjectPtr 사용 — 파괴된 컴포넌트 참조 시 크래시 방지.
+     */
+    TWeakObjectPtr<UNiagaraComponent> SpawnedTrailTip = nullptr;
 #pragma endregion 런타임 상태
 
 #pragma region 노티파이 오버라이드

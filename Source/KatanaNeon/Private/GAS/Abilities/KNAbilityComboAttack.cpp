@@ -273,22 +273,25 @@ void UKNAbilityComboAttack::ActivateHitbox()
         if (CachedComboRow.HitVFX)
         {
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-                GetWorld(),
-                CachedComboRow.HitVFX,
-                Hit.ImpactPoint,
-                Hit.ImpactNormal.Rotation());
+                GetWorld(), CachedComboRow.HitVFX,
+                Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
         }
     }
 
     // ★ 미적중 포함 항상 나오는 VFX — 칼날 중간 위치에 스폰
-    if (CachedComboRow.HitVFX)
+    if (CachedComboRow.SlashVFX)
     {
         const FVector BladeCenter = (HitStart + HitEnd) * 0.5f;
+
+        // 캐릭터 전방 방향 + DT에서 설정한 오프셋 회전을 합산
+        const FRotator FinalRotation = (Owner->GetActorForwardVector().Rotation()
+            + CachedComboRow.SlashVFXRotationOffset).GetNormalized();
+
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             GetWorld(),
-            CachedComboRow.HitVFX,
+            CachedComboRow.SlashVFX,
             BladeCenter,
-            Owner->GetActorForwardVector().Rotation());
+            FinalRotation);
     }
 }
 
@@ -478,6 +481,29 @@ bool UKNAbilityComboAttack::PlayComboMontage()
     Task->OnCancelled.AddDynamic(this, &UKNAbilityComboAttack::OnMontageEnded);
     Task->ReadyForActivation();
     CurrentMontageTask = Task;
+    // ★ 안전망: 몽타주 길이 + 여유시간 후 강제 종료
+       // 정상 흐름에서는 OnMontageEnded가 먼저 호출되어 이 타이머가 실행되지 않습니다
+    if (UWorld* World = GetWorld())
+    {
+        const float MontageLength = MontageToPlay->GetPlayLength() / FinalPlayRate;
+        World->GetTimerManager().SetTimer(
+            SafetyTimerHandle,
+            FTimerDelegate::CreateWeakLambda(this, [this]()
+                {
+                    if (IsActive())
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("[ComboAttack] 안전망 타이머 발동 — 강제 종료"));
+                        EndAbility(
+                            GetCurrentAbilitySpecHandle(),
+                            GetCurrentActorInfo(),
+                            GetCurrentActivationInfo(),
+                            true, true);
+                    }
+                }),
+            MontageLength + 0.5f,
+            false);
+    }
+
     return true;
 }
 

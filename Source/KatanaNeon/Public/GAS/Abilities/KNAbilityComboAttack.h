@@ -222,6 +222,9 @@ private:
     /** @brief 콤보 윈도우 만료 타이머 핸들 */
     FTimerHandle ComboWindowTimerHandle;
 
+    /** @brief 어빌리티 최대 지속 시간 안전망 타이머 — 모든 경로에서 EndAbility 미호출 시 강제 종료 */
+    FTimerHandle SafetyTimerHandle;
+
     /** @brief 현재 단계의 DataTable 데이터 캐시 */
     FKNComboAttackRow CachedComboRow;
 
