@@ -151,7 +151,7 @@ bool UKNAbilityOverclockLv1::ConsumeOverclockLevel()
         return false;
     }
 
-    return Stats->ConsumeOverclockLevel(1);
+    return Stats->ConsumeOverclockLevel(CachedSetting.OverclockCost);
 }
 
 void UKNAbilityOverclockLv1::ApplyStatBuffGEs(UAbilitySystemComponent* ASC)

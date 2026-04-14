@@ -127,24 +127,13 @@ void UKNStatsComponent::GainOverclockPoint(float GainAmount)
     ApplyInstantGEInternal(KatanaNeon::Data::Stats::OverclockPoint, GainAmount);
 }
 
-bool UKNStatsComponent::ConsumeOverclockLevel(int32 Level)
+bool UKNStatsComponent::ConsumeOverclockLevel(float Cost)
 {
     if (!ASC || !AttributeSet) return false;
+    if (Cost <= 0.0f) return false;
+    if (AttributeSet->GetOverclockPoint() < Cost) return false;
 
-    float ConsumeAmount = 0.0f;
-
-    switch (Level)
-    {
-    case 1: ConsumeAmount = OverclockSetting.Lv1Threshold; break;
-    case 2: ConsumeAmount = OverclockSetting.Lv2Threshold; break;
-    case 3: ConsumeAmount = OverclockSetting.Lv3Threshold; break;
-    default: return false;
-    }
-
-    // 태그 대신 실제 포인트 값으로 직접 판단
-    if (AttributeSet->GetOverclockPoint() < ConsumeAmount) return false;
-
-    ApplyInstantGEInternal(KatanaNeon::Data::Stats::OverclockPoint, -ConsumeAmount);
+    ApplyInstantGEInternal(KatanaNeon::Data::Stats::OverclockPoint, -Cost);
     return true;
 }
 #pragma endregion 핵심 조작 구현

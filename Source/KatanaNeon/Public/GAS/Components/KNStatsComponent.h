@@ -130,12 +130,11 @@ public:
     void GainOverclockPoint(float GainAmount);
 
     /**
-     * @brief 스킬 사용 시 지정된 오버클럭 레벨을 소비합니다.
-     * @param Level 소비할 레벨 (1~3)
-     * @return 소비 성공 여부
+     * @brief DataTable에서 읽어온 코스트만큼 오버클럭 포인트를 차감합니다.
+     * @param Cost 차감할 포인트량 (각 어빌리티의 CachedSetting.OverclockCost)
+     * @return 차감 성공 여부
      */
-    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Overclock")
-    bool ConsumeOverclockLevel(int32 Level);
+    bool ConsumeOverclockLevel(float Cost);
 #pragma endregion 핵심 조작 및 초기화 인터페이스
 
 #pragma region 데이터 조회

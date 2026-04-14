@@ -140,7 +140,7 @@ bool UKNAbilityOverclockLv2::ConsumeOverclockLevel()
         return false;
     }
 
-    return Stats->ConsumeOverclockLevel(2);
+    return Stats->ConsumeOverclockLevel(CachedSetting.OverclockCost);
 }
 
 void UKNAbilityOverclockLv2::SpawnSlashProjectile(AKNCharacterBase* Owner)

@@ -146,7 +146,7 @@ bool UKNAbilityOverclockLv3::ConsumeOverclockLevel()
         return false;
     }
 
-    return Stats->ConsumeOverclockLevel(3);
+    return Stats->ConsumeOverclockLevel(CachedSetting.OverclockCost);
 }
 
 void UKNAbilityOverclockLv3::ApplyTimeDilation(float WorldScale)
