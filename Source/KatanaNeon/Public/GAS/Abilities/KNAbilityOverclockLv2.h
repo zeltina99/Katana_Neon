@@ -92,9 +92,19 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|OverclockLv2|DataTable")
     FDataTableRowHandle Lv2SettingRowHandle;
 
-    /** @brief 참격파 발동 몽타주 (에디터 할당, "SlashRelease" AnimNotify 포함 필수) */
+    /**
+     * @brief 발도 상태 참격파 발동 몽타주.
+     * @details WeaponDrawn 태그가 있을 때 재생됩니다.
+     */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|OverclockLv2|Montage")
-    TObjectPtr<UAnimMontage> SlashMontage = nullptr;
+    TObjectPtr<UAnimMontage> SlashMontage_Drawn = nullptr;
+
+    /**
+     * @brief 납도 상태 참격파 발동 몽타주.
+     * @details WeaponDrawn 태그가 없을 때 재생됩니다.
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|OverclockLv2|Montage")
+    TObjectPtr<UAnimMontage> SlashMontage_Sheath = nullptr;
 
     /** @brief 발사할 참격파 블루프린트 클래스 (에디터 할당) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KatanaNeon|Ability|OverclockLv2|Projectile")
@@ -141,5 +151,11 @@ private:
      * @param Owner 발사 주체 캐릭터 (AKNCharacterBase)
      */
     void SpawnSlashProjectile(AKNCharacterBase* Owner);
+
+    /**
+     * @brief 현재 WeaponDrawn 태그 유무로 발도 상태를 판별합니다.
+     * @return 발도 상태이면 true
+     */
+    bool IsWeaponDrawn() const;
 #pragma endregion 내부 헬퍼 함수
 };

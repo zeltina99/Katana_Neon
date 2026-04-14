@@ -9,6 +9,7 @@
 #include "GAS/Attributes/KNAttributeSet.h"
 #include "GAS/Components/KNStatsComponent.h"
 #include "GAS/Tags/KNStatsTags.h"
+#include "NiagaraFunctionLibrary.h"
 
 #pragma region 기본 생성자 및 초기화 구현
 UKNAbilityComboAttack::UKNAbilityComboAttack()
@@ -181,57 +182,85 @@ void UKNAbilityComboAttack::ActivateHitbox()
     ACharacter* Owner = Cast<ACharacter>(GetAvatarActorFromActorInfo());
     if (!Owner) return;
 
-    // ── 히트박스 구체 오버랩 판정 ──
-    TArray<FOverlapResult> Overlaps;
-    const FVector HitCenter = Owner->GetActorLocation()
-        + Owner->GetActorForwardVector() * 100.0f; // 전방 100cm
+    // 카타나 메시에서 두 소켓 위치를 가져옵니다
+    UStaticMeshComponent* KatanaMesh =
+        Owner->FindComponentByClass<UStaticMeshComponent>();
 
-    GetWorld()->OverlapMultiByChannel(
-        Overlaps,
-        HitCenter,
+    FVector HitStart = Owner->GetActorLocation() + Owner->GetActorForwardVector() * 10.0f;
+    FVector HitEnd = Owner->GetActorLocation() + Owner->GetActorForwardVector() * 100.0f;
+
+    if (KatanaMesh)
+    {
+        if (KatanaMesh->DoesSocketExist(TEXT("Socket_Blade_Root")))
+        {
+            HitStart = KatanaMesh->GetSocketLocation(TEXT("Socket_Blade_Root"));
+        }
+        if (KatanaMesh->DoesSocketExist(TEXT("Socket_Blade_Tip")))
+        {
+            HitEnd = KatanaMesh->GetSocketLocation(TEXT("Socket_Blade_Tip"));
+        }
+    }
+
+    // 구체 스윕으로 칼날 전체 범위를 판정합니다
+    TArray<FHitResult> HitResults;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(Owner);
+
+    GetWorld()->SweepMultiByChannel(
+        HitResults,
+        HitStart,
+        HitEnd,
         FQuat::Identity,
         ECC_Pawn,
-        FCollisionShape::MakeSphere(80.0f));
+        FCollisionShape::MakeSphere(8.0f),  // 칼 두께
+        Params);
 
-    for (const FOverlapResult& Overlap : Overlaps)
+    TSet<AActor*> HitActors; // 동일 액터 중복 히트 방지
+
+    for (const FHitResult& Hit : HitResults)
     {
-        AActor* HitActor = Overlap.GetActor();
-        if (!HitActor || HitActor == Owner) continue;
+        AActor* HitActor = Hit.GetActor();
+        if (!HitActor || HitActors.Contains(HitActor)) continue;
+        HitActors.Add(HitActor);
 
-        UAbilitySystemComponent* TargetASC = HitActor->FindComponentByClass<UAbilitySystemComponent>();
+        UAbilitySystemComponent* TargetASC =
+            HitActor->FindComponentByClass<UAbilitySystemComponent>();
         if (!TargetASC) continue;
 
-        // ── 데미지 GE 적용 (SetByCaller: Health = -실제데미지) ──
+        // 데미지 GE 적용
         FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
         Context.AddInstigator(Owner, Owner);
+        FGameplayEffectSpecHandle DmgSpec =
+            ASC->MakeOutgoingSpec(DamageGEClass, 1.0f, Context);
 
-        FGameplayEffectSpecHandle DmgSpec = ASC->MakeOutgoingSpec(DamageGEClass, 1.0f, Context);
         if (FGameplayEffectSpec* Spec = DmgSpec.Data.Get())
         {
-            // 오버클럭 1단계 배율
             float TacticalMultiplier = 1.0f;
             if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::OverclockTactical))
             {
-                if (const FKNOverclockLv1Row* Lv1Row = OverclockLv1RowHandle.GetRow<FKNOverclockLv1Row>(TEXT("GetTacticalMultiplier")))
+                if (const FKNOverclockLv1Row* Lv1Row =
+                    OverclockLv1RowHandle.GetRow<FKNOverclockLv1Row>(TEXT("GetTacticalMultiplier")))
                 {
                     TacticalMultiplier = Lv1Row->DamageMultiplier;
                 }
             }
 
-            // 오버클럭 3단계(시간 정지) 배율
             float FrozenMultiplier = 1.0f;
             if (ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WorldTimeFrozen))
             {
-                if (const FKNOverclockLv3Row* Lv3Row = OverclockLv3RowHandle.GetRow<FKNOverclockLv3Row>(TEXT("GetFrozenMultiplier")))
+                if (const FKNOverclockLv3Row* Lv3Row =
+                    OverclockLv3RowHandle.GetRow<FKNOverclockLv3Row>(TEXT("GetFrozenMultiplier")))
                 {
                     FrozenMultiplier = Lv3Row->FrozenDamageMultiplier;
                 }
             }
 
-            // 기획자의 엑셀 데이터 3개가 곱해져서 만들어진 궁극의 최종 데미지!
-            const float FinalDamage = BaseAttackDamage * CachedComboRow.DamageMultiplier * TacticalMultiplier * FrozenMultiplier;
-            Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Health, -FinalDamage);
+            const float FinalDamage = BaseAttackDamage
+                * CachedComboRow.DamageMultiplier
+                * TacticalMultiplier
+                * FrozenMultiplier;
 
+            Spec->SetSetByCallerMagnitude(KatanaNeon::Data::Stats::Health, -FinalDamage);
             TargetASC->ApplyGameplayEffectSpecToSelf(*Spec);
         }
 
@@ -239,6 +268,27 @@ void UKNAbilityComboAttack::ActivateHitbox()
         {
             Stats->GainOverclockPoint(CachedComboRow.OverclockGain);
         }
+
+        // ★ 적중 VFX — 히트 위치에 스폰
+        if (CachedComboRow.HitVFX)
+        {
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                GetWorld(),
+                CachedComboRow.HitVFX,
+                Hit.ImpactPoint,
+                Hit.ImpactNormal.Rotation());
+        }
+    }
+
+    // ★ 미적중 포함 항상 나오는 VFX — 칼날 중간 위치에 스폰
+    if (CachedComboRow.HitVFX)
+    {
+        const FVector BladeCenter = (HitStart + HitEnd) * 0.5f;
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(),
+            CachedComboRow.HitVFX,
+            BladeCenter,
+            Owner->GetActorForwardVector().Rotation());
     }
 }
 

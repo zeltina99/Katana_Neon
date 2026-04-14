@@ -53,10 +53,10 @@ void UKNAbilityOverclockLv2::ActivateAbility(
         return;
     }
 
-    // ── 3. 발동 몽타주 재생 (AbilityTask) ──
-    if (!SlashMontage)
+    UAnimMontage* MontageToPlay = IsWeaponDrawn() ? SlashMontage_Drawn : SlashMontage_Sheath;
+
+    if (!MontageToPlay)
     {
-        // 몽타주가 세팅되지 않았을 경우 즉시 참격파 발사 후 종료 (예외 처리)
         AKNCharacterBase* Owner = Cast<AKNCharacterBase>(GetAvatarActorFromActorInfo());
         SpawnSlashProjectile(Owner);
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -65,7 +65,7 @@ void UKNAbilityOverclockLv2::ActivateAbility(
 
     UAbilityTask_PlayMontageAndWait* MontageTask =
         UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-            this, NAME_None, SlashMontage, 1.0f, NAME_None, false);
+            this, NAME_None, MontageToPlay, 1.0f, NAME_None, false);
 
     // 몽타주가 끝나거나 끊기면 어빌리티를 완전히 종료합니다.
     // (주의: 발사는 OnSlashReleaseNotify에서 처리되므로 여기선 종료만 담당합니다)
@@ -181,5 +181,12 @@ void UKNAbilityOverclockLv2::SpawnSlashProjectile(AKNCharacterBase* Owner)
     {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), SlashNiagara, SpawnPos, SpawnRot);
     }
+}
+bool UKNAbilityOverclockLv2::IsWeaponDrawn() const
+{
+    const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+    if (!ASC) return false;
+
+    return ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::WeaponDrawn);
 }
 #pragma endregion 내부 헬퍼 함수 구현

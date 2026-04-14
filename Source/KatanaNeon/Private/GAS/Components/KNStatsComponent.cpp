@@ -107,6 +107,8 @@ void UKNStatsComponent::InitializeStatComponent(UAbilitySystemComponent* InASC)
     ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetOverclockPointAttribute())
         .AddUObject(this, &UKNStatsComponent::OnOverclockPointChangedInternal);
 
+    SyncOverclockLevelTags(AttributeSet->GetOverclockPoint());
+
     // ── 스태미나 자연 회복 타이머 시작 (ApplyBaseStats 완료 후 시점 보장) ──
     StartStaminaRegen();
 

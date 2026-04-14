@@ -358,6 +358,7 @@ void AKNPlayerController::Input_OverclockLv1(const FInputActionValue&)
 
 void AKNPlayerController::Input_OverclockLv2(const FInputActionValue&)
 {
+    UE_LOG(LogTemp, Warning, TEXT("[Controller] 2번 키 눌림!"));
     TryActivateAbilityByTag(KatanaNeon::Ability::Overclock::Lv2);
 }
 

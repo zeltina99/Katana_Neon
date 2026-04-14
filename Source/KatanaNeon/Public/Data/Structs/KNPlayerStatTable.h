@@ -337,6 +337,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Visual")
     FName MontageSectionName = NAME_None;
 
+    /** @brief 약공격 궤적 VFX — Trail 노티파이가 읽어갑니다. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
+    TObjectPtr<UNiagaraSystem> TrailVFX = nullptr;
+
+    /** @brief 강공격/피니셔 타격 VFX — HitboxOpen 시점에 칼날 위치에서 스폰됩니다. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
+    TObjectPtr<UNiagaraSystem> SlashVFX = nullptr;
+
     /** @brief 적에게 적중(Hit)했을 때 터뜨릴 이펙트 (VFX) */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KatanaNeon|Combo|Impact")
     TObjectPtr<UNiagaraSystem> HitVFX = nullptr;
