@@ -202,7 +202,47 @@ void AKNPlayerController::Input_SprintToggle(const FInputActionValue&)
 // ── GAS 어빌리티 호출 로직 (공통 헬퍼 사용으로 획기적 최적화) ──
 void AKNPlayerController::Input_Attack(const FInputActionValue&)
 {
-    TryActivateAbilityByTag(KatanaNeon::Ability::Combat::Attack);
+    // 최적화: 스마트 포인터 방식의 nullptr 안전 검사
+    AKNCharacterBase* ControlledCharacter = Cast<AKNCharacterBase>(GetPawn());
+    if (ControlledCharacter == nullptr)
+    {
+        return;
+    }
+
+    UAbilitySystemComponent* ASC = ControlledCharacter->GetAbilitySystemComponent();
+    if (ASC == nullptr)
+    {
+        return;
+    }
+
+    TArray<FGameplayAbilitySpec*> MatchingSpecs;
+    ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+        FGameplayTagContainer(KatanaNeon::Ability::Combat::Attack),
+        MatchingSpecs,
+        false
+    );
+
+    for (FGameplayAbilitySpec* Spec : MatchingSpecs)
+    {
+        if (Spec == nullptr) continue;
+
+        if (Spec->IsActive())
+        {
+            // 최적화: InstancedPerActor이므로 배열 루프 없이 PrimaryInstance를 직접 가져옵니다.
+            UGameplayAbility* PrimaryInstance = Spec->GetPrimaryInstance();
+            UKNAbilityComboAttack* ComboAbility = Cast<UKNAbilityComboAttack>(PrimaryInstance);
+
+            if (ComboAbility != nullptr)
+            {
+                // 콤보 진행 중 → TryActivate 하지 않고 어빌리티 내부 버퍼에만 저장 (SRP)
+                ComboAbility->BufferNextInput(false); // Light Attack
+                return;
+            }
+        }
+    }
+
+    // 콤보 비활성 → 어빌리티 새로 시작
+    ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(KatanaNeon::Ability::Combat::Attack));
 }
 
 void AKNPlayerController::Input_HeavyAttack(const FInputActionValue& Value)

@@ -21,7 +21,7 @@ UKNAbilityComboAttack::UKNAbilityComboAttack()
     //사망
 
     // 콤보 윈도우 중 재입력 허용
-    bRetriggerInstancedAbility = true;
+    //bRetriggerInstancedAbility = true;
 
     // 콤보 상태(Step)는 인스턴스 멤버로 관리하므로 InstancedPerActor 필수
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -87,6 +87,14 @@ void UKNAbilityComboAttack::ActivateAbility(
         return;
     }
 
+    // ★ 몽타주 재생 중(윈도우 전)에 입력이 들어오면 버퍼에 저장
+    if (CurrentComboStep > 0)
+    {
+        bInputBuffered = true;
+        bBufferedInputIsHeavy = false; // 좌클릭이므로 Light
+        return;
+    }
+
     // ── 1단계 시작: 이 시점의 스탠스를 콤보 끝까지 고정 ──
     bIsDrawnCombo = IsWeaponDrawn(ActorInfo);
     CurrentComboStep = 1;
@@ -123,6 +131,8 @@ void UKNAbilityComboAttack::EndAbility(
     bComboWindowOpen = false;
     bNextIsHeavy = false;
     bIsDrawnCombo = false;
+    bInputBuffered = false;
+    bBufferedInputIsHeavy = false;
 
     if (UWorld* World = GetWorld())
     {
@@ -134,6 +144,17 @@ void UKNAbilityComboAttack::EndAbility(
 #pragma endregion GAS 핵심 오버라이드 구현
 
 #pragma region 블루프린트 / AnimNotify 연동 인터페이스 구현
+void UKNAbilityComboAttack::BufferNextInput(bool bIsHeavy)
+{
+    // 강공격(Heavy) 상태일 때 다시 강공격이 들어오는 것은 차단합니다.
+    if (bIsHeavy && CurrentAttackType == static_cast<int32>(EKNComboAttackType::Heavy))
+    {
+        return;
+    }
+
+    bInputBuffered = true;
+    bBufferedInputIsHeavy = bIsHeavy;
+}
 void UKNAbilityComboAttack::ActivateHitbox()
 {
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -205,15 +226,34 @@ void UKNAbilityComboAttack::ActivateHitbox()
 
 void UKNAbilityComboAttack::OpenComboWindow()
 {
-    // ComboWindowTime == 0.0f : 피니셔 공격 → 즉시 종료
+    // Heavy 공격은 항상 피니셔 — 윈도우 없이 즉시 종료
+    if (CurrentAttackType == 1)
+    {
+        OnComboWindowExpired();
+        return;
+    }
+
+    // ComboWindowTime == 0.0f : Light 피니셔(5단계) → 즉시 종료
     if (FMath::IsNearlyZero(CachedComboRow.ComboWindowTime))
     {
         OnComboWindowExpired();
         return;
     }
 
-    bComboWindowOpen = true;
+    // ★ 버퍼링된 입력이 있으면 즉시 다음 콤보로 진행
+    if (bInputBuffered)
+    {
+        bInputBuffered = false;
+        if (bBufferedInputIsHeavy && CurrentAttackType == 0)
+        {
+            bNextIsHeavy = true;
+        }
+        bBufferedInputIsHeavy = false;
+        AdvanceCombo();
+        return;
+    }
 
+    bComboWindowOpen = true;
     GetWorld()->GetTimerManager().SetTimer(
         ComboWindowTimerHandle,
         this,
@@ -224,10 +264,15 @@ void UKNAbilityComboAttack::OpenComboWindow()
 
 void UKNAbilityComboAttack::RequestHeavyAttack()
 {
-    // 윈도우가 열려 있을 때만 다음 단계를 Heavy로 예약
-    if (bComboWindowOpen)
+    if (bComboWindowOpen && CurrentAttackType == 0)
     {
         bNextIsHeavy = true;
+    }
+    // 윈도우 전 Heavy 입력도 버퍼링
+    else if (CurrentComboStep > 0 && !bComboWindowOpen && CurrentAttackType == 0)
+    {
+        bInputBuffered = true;
+        bBufferedInputIsHeavy = true;
     }
 }
 void UKNAbilityComboAttack::PrepareHeavyStart()

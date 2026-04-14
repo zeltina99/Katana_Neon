@@ -12,6 +12,19 @@ class UKNStatsComponent;
 class UAbilityTask_PlayMontageAndWait;
 #pragma endregion 전방 선언
 
+#pragma region 열거형 데이터
+/**
+ * @enum    EKNComboAttackType
+ * @brief   콤보 공격의 타입을 정의하여 매직 넘버를 방지합니다.
+ */
+UENUM(BlueprintType)
+enum class EKNComboAttackType : uint8
+{
+    Light = 0 UMETA(DisplayName = "약공격"),
+    Heavy = 1 UMETA(DisplayName = "강공격")
+};
+#pragma endregion 열거형 데이터
+
 /**
  * @file    KNAbilityComboAttack.h
  * @class   UKNAbilityComboAttack
@@ -103,6 +116,14 @@ public:
 
 #pragma region 블루프린트 / AnimNotify 연동 인터페이스
 public:
+    /**
+     * @brief 몽타주 재생 중 입력을 버퍼에 저장합니다.
+     * @details Controller에서 콤보 어빌리티가 활성화 상태일 때 호출됩니다.
+     * @param bIsHeavy 강공격 입력인지 여부
+     */
+    UFUNCTION(BlueprintCallable, Category = "KatanaNeon|Ability|Combo")
+    void BufferNextInput(bool bIsHeavy);
+
     /**
      * @brief AnimNotify(HitboxOpen)에서 호출 — 히트박스 구체 판정을 실행합니다.
      * @details CachedComboRow.DamageMultiplier × BaseDamage 의 데미지 GE를 적중 대상에게 적용합니다.
@@ -204,6 +225,12 @@ private:
 
     /** @brief 현재 단계의 DataTable 데이터 캐시 */
     FKNComboAttackRow CachedComboRow;
+
+    /** @brief 콤보 윈도우가 열리기 전에 입력이 들어왔을 때 버퍼링합니다. */
+    bool bInputBuffered = false;
+
+    /** @brief 버퍼링된 입력이 Heavy인지 여부 */
+    bool bBufferedInputIsHeavy = false;
 #pragma endregion 런타임 콤보 상태
 
 #pragma region 내부 헬퍼 함수
