@@ -6,6 +6,10 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "BTTask_BossPhaseAction.generated.h"
 
+#pragma region 전방 선언
+class UAnimMontage;
+#pragma endregion 전방 선언
+
 /**
  * @file    BTTask_BossPhaseAction.h
  * @class   UBTTask_BossPhaseAction
@@ -26,16 +30,26 @@ class KATANANEON_API UBTTask_BossPhaseAction : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
+#pragma region 기본 생성자 및 초기화
 public:
+    /**
+     * @brief 태스크 기본값을 초기화합니다.
+     */
     UBTTask_BossPhaseAction();
+#pragma endregion 기본 생성자 및 초기화
 
+#pragma region 태스크 오버라이드
 protected:
     /**
-     * @brief 태스크 실행 — 무적 부여 및 전환 몽타주를 재생합니다.
+     * @brief 태스크 실행 — 무적 태그 부여 및 전환 몽타주를 재생합니다.
+     * @param OwnerComp 비헤이비어 트리 컴포넌트
+     * @param NodeMemory 노드 메모리
+     * @return 성공/실패
      */
     virtual EBTNodeResult::Type ExecuteTask(
         UBehaviorTreeComponent& OwnerComp,
         uint8* NodeMemory) override;
+#pragma endregion 태스크 오버라이드
 
 #pragma region 에디터 설정 데이터
 protected:

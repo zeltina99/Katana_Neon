@@ -222,6 +222,23 @@ namespace KatanaNeon
             KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ChargeAttack)
         }
 
+        // 보스 전용 어빌리티 태그
+        namespace Boss
+        {
+                // ── 보스 전용 어빌리티 실행 태그 ───────────────────
+                /** @brief 보스의 기본 근접 콤보 공격 어빌리티 식별 태그 */
+                KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(BasicCombo)
+
+                /** @brief 보스의 광역(AoE) 특수 패턴 어빌리티 식별 태그 (주로 2페이즈 이상에서 사용) */
+                KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SpecialAoE)
+
+                /** @brief 보스의 원거리 장풍/투사체 공격 어빌리티 식별 태그 */
+                KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(RangedBlast)
+
+                /** @brief 보스의 돌진/돌파 패턴 어빌리티 식별 태그 */
+                KATANANEON_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Charge)
+        }
+
         namespace Skill
         {
             // ── 특수 스킬 어빌리티 ───────────────────────────

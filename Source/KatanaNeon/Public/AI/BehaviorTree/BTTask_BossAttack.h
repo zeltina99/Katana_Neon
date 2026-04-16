@@ -25,19 +25,50 @@ class KATANANEON_API UBTTask_BossAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
+#pragma region 기본 생성자 및 초기화
 public:
+    /**
+     * @brief 태스크 기본값 및 블랙보드 키 필터를 초기화합니다.
+     */
     UBTTask_BossAttack();
 
 protected:
     /**
-     * @brief 태스크 실행 — 공격 어빌리티를 활성화합니다.
+     * @brief 블랙보드 에셋 연결 시 키를 실제 인덱스로 해결합니다.
+     * @param Asset 연결된 비헤이비어 트리 에셋
+     */
+    virtual void InitializeFromAsset(UBehaviorTree& Asset) override;
+#pragma endregion 기본 생성자 및 초기화
+
+#pragma region 태스크 오버라이드
+protected:
+    /**
+     * @brief 태스크 실행 — 플레이어 방향 회전 후 공격 어빌리티를 활성화합니다.
      * @param OwnerComp 비헤이비어 트리 컴포넌트
      * @param NodeMemory 노드 메모리
-     * @return 성공/실패/진행 중
+     * @return 성공/실패
      */
     virtual EBTNodeResult::Type ExecuteTask(
         UBehaviorTreeComponent& OwnerComp,
         uint8* NodeMemory) override;
+#pragma endregion 태스크 오버라이드
+
+#pragma region 에디터 노출 블랙보드 키
+protected:
+    /**
+     * @brief 감지된 플레이어 액터 키.
+     * @details Object 타입 키만 선택 가능합니다.
+     */
+    UPROPERTY(EditAnywhere, Category = "KatanaNeon|Blackboard")
+    FBlackboardKeySelector TargetPlayerKey;
+
+    /**
+     * @brief 공격 중 여부 키.
+     * @details Bool 타입 키만 선택 가능합니다.
+     */
+    UPROPERTY(EditAnywhere, Category = "KatanaNeon|Blackboard")
+    FBlackboardKeySelector IsAttackingKey;
+#pragma endregion 에디터 노출 블랙보드 키
 
 #pragma region 에디터 설정 데이터
 protected:
@@ -49,8 +80,8 @@ protected:
     FGameplayTag AttackAbilityTag;
 
     /**
-     * @brief 공격 후 대기 시간 (초).
-     * @details 공격 쿨타임 역할을 합니다.
+     * @brief 공격 후 대기 시간 (초). 공격 쿨타임 역할을 합니다.
+     * @details 몽타주 길이에 맞춰 설정하는 것을 권장합니다.
      */
     UPROPERTY(EditAnywhere, Category = "KatanaNeon|Boss|Attack",
         meta = (ClampMin = 0.0f, ClampMax = 10.0f))

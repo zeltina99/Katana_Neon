@@ -8,17 +8,20 @@
 #include "GameFramework/Character.h"
 #include "GAS/Tags/KNStatsTags.h"
 
+#pragma region 기본 생성자 및 초기화 구현
 UBTTask_BossPhaseAction::UBTTask_BossPhaseAction()
 {
     NodeName = TEXT("보스 페이즈 전환 연출");
     bNotifyTick = false;
 }
+#pragma endregion 기본 생성자 및 초기화 구현
 
+#pragma region 태스크 오버라이드 구현
 EBTNodeResult::Type UBTTask_BossPhaseAction::ExecuteTask(
     UBehaviorTreeComponent& OwnerComp,
     uint8* NodeMemory)
 {
-    AAIController* Controller = OwnerComp.GetAIOwner();
+    const AAIController* Controller = OwnerComp.GetAIOwner();
     if (!Controller) return EBTNodeResult::Failed;
 
     ACharacter* BossChar = Cast<ACharacter>(Controller->GetPawn());
@@ -28,20 +31,21 @@ EBTNodeResult::Type UBTTask_BossPhaseAction::ExecuteTask(
         UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(BossChar);
     if (!ASC) return EBTNodeResult::Failed;
 
-    // 1. 전환 중 무적 태그 부여
+    // 1. 전환 중 피격 방지를 위해 무적 태그 부여
     ASC->AddLooseGameplayTag(KatanaNeon::State::Combat::Invincible);
 
-    // 2. 전환 몽타주 재생
+    // 2. 전환 몽타주 재생 (nullptr이면 연출 없이 즉시 진행)
     if (PhaseTransitionMontage)
     {
         BossChar->PlayAnimMontage(PhaseTransitionMontage);
     }
 
-    // 3. InvincibleDuration 후 무적 해제 및 태스크 완료
+    // 3. InvincibleDuration 경과 후 무적 태그 제거
+    // WeakLambda로 BossChar 파괴 시 크래시를 원천 차단합니다.
     FTimerHandle TimerHandle;
     BossChar->GetWorldTimerManager().SetTimer(
         TimerHandle,
-        FTimerDelegate::CreateWeakLambda(BossChar, [ASC, &OwnerComp, this]()
+        FTimerDelegate::CreateWeakLambda(BossChar, [ASC]()
             {
                 if (ASC && ASC->HasMatchingGameplayTag(KatanaNeon::State::Combat::Invincible))
                 {
@@ -53,3 +57,4 @@ EBTNodeResult::Type UBTTask_BossPhaseAction::ExecuteTask(
 
     return EBTNodeResult::Succeeded;
 }
+#pragma endregion 태스크 오버라이드 구현

@@ -124,6 +124,14 @@ namespace KatanaNeon
             UE_DEFINE_GAMEPLAY_TAG(RangedAttack, "KatanaNeon.Ability.Enemy.RangedAttack")
             UE_DEFINE_GAMEPLAY_TAG(ChargeAttack, "KatanaNeon.Ability.Enemy.ChargeAttack")
         }
+        namespace Boss
+        {
+            // ── 보스 전용 어빌리티 실행 태그 ───────────────────
+            UE_DEFINE_GAMEPLAY_TAG(BasicCombo, "KatanaNeon.Ability.Boss.BasicCombo")
+            UE_DEFINE_GAMEPLAY_TAG(SpecialAoE, "KatanaNeon.Ability.Boss.SpecialAoE")
+            UE_DEFINE_GAMEPLAY_TAG(RangedBlast, "KatanaNeon.Ability.Boss.RangedBlast")
+            UE_DEFINE_GAMEPLAY_TAG(Charge, "KatanaNeon.Ability.Boss.Charge")
+        }
         namespace Skill
         {
             // ── 특수 스킬 어빌리티 ───────────────────────────

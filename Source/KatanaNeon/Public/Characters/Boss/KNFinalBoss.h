@@ -8,7 +8,7 @@
 
 /**
  * @class  AKNFinalBoss
- * @brief  최종 보스 클래스. 3페이즈 이상의 복합 패턴과 연출을 담습니다.
+ * @brief  최종 보스 클래스. 2페이즈 복합 패턴과 연출을 담습니다.
  */
 UCLASS()
 class KATANANEON_API AKNFinalBoss : public AKNBossBase

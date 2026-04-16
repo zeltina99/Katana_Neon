@@ -9,11 +9,11 @@
 #include "Characters/Boss/KNBossBase.h"
 
 #pragma region 블랙보드 키 이름 상수 정의
-const FName AKNBossController::BBKey_TargetPlayer = TEXT("TargetPlayer");
-const FName AKNBossController::BBKey_IsAttacking = TEXT("bIsAttacking");
-const FName AKNBossController::BBKey_CurrentPhase = TEXT("CurrentPhase");
-const FName AKNBossController::BBKey_IsStunned = TEXT("bIsStunned");
-const FName AKNBossController::BBKey_DistToPlayer = TEXT("DistToPlayer");
+const FName AKNBossController::BBKey_TargetPlayer   = TEXT("TargetPlayer");
+const FName AKNBossController::BBKey_IsAttacking    = TEXT("bIsAttacking");
+const FName AKNBossController::BBKey_CurrentPhase   = TEXT("CurrentPhase");
+const FName AKNBossController::BBKey_IsStunned      = TEXT("bIsStunned");
+const FName AKNBossController::BBKey_DistToPlayer   = TEXT("DistToPlayer");
 #pragma endregion 블랙보드 키 이름 상수 정의
 
 #pragma region 기본 생성자 및 초기화 구현

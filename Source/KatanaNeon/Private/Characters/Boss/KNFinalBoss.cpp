@@ -8,11 +8,12 @@ void AKNFinalBoss::OnPhaseTransition(int32 NewPhaseIndex)
 {
     Super::OnPhaseTransition(NewPhaseIndex);
 
-    // TODO: 페이즈별 컷신/시퀀서 연동
-    // Phase 1 (NewPhaseIndex == 1): 폼 변경 연출
-    // Phase 2 (NewPhaseIndex == 2): 맵 변화 + 오버클럭 게이지 강제 충전
-    // Phase 3 (NewPhaseIndex == 3): 절망적 광역 공격 (사망 직전 발악)
+    // [기획 확정] 2페이즈 구조
+    // Phase 1 (NewPhaseIndex == 1): 카타나를 활용한 기본 근접 공격 패턴
+    // Phase 2 (NewPhaseIndex == 2): 돌진 공격 및 광역기(AoE) 특수 패턴 해금
+
+    // TODO: 2페이즈 진입 시 재생할 시네마틱 컷신 또는 맵 변화 연출 트리거
 
     UE_LOG(LogTemp, Log, TEXT("[KNFinalBoss] 최종 보스 페이즈 %d 돌입."), NewPhaseIndex);
 }
-#pragma endregion 페이즈 전환 구현 끝
+#pragma endregion 페이즈 전환 구현
